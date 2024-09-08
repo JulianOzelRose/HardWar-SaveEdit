@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HardWar Savegame Editor</title>
+    <link rel="stylesheet" href="assets/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="images/HardWar.ico" type="image/x-icon">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-custom navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <p class="navbar-brand">HardWar Savegame Editor</p>
+            </div>
+            <div class="navbar-buttons">
+                <button class="btn navbar-btn about-btn" onclick="openAboutModal()">About</button>
+                <button class="btn navbar-btn open-btn" onclick="browseFile()">Open</button>
+                <button class="btn navbar-btn save-btn" id="saveButton" onclick="applyChanges()">Save</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main container -->
+    <div class="container my-5" style="padding-top: 60px;">
+        <div class="card mx-auto" style="max-width: 550px;">
+            <div class="card-header d-flex align-items-center justify-content-center"
+                style="padding: 30px; height: 50px;">
+                <label id="savegame" class="text-primary"
+                    style="color: black !important; text-align: center; font-weight: bold;"></label>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs mb-3" id="editorTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" onclick="showTab('pilots')">Pilots</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showTab('moths')">Moths</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="showTab('hangars')">Hangars</a>
+                    </li>
+                </ul>
+
+                <!-- Pilots tab -->
+                <div id="pilots" class="editor-tab">
+                    <div class="form-group">
+                        <label for="pilotSelect" style="margin-left: 15px;">Select Pilot:</label>
+                        <select id="pilotSelect" class="form-control"
+                            style="max-width: 200px; margin-right: 10px;"></select>
+                    </div>
+                    <fieldset class="border p-3">
+                        <div class="form-group flex-group">
+                            <label>Status:</label>
+                            <p id="pilotStatus"></p>
+                        </div>
+                        <div class="form-group flex-group">
+                            <label>Location:</label>
+                            <p id="pilotLocation" class="text-primary"></p>
+                        </div>
+                        <div class="form-group flex-group">
+                            <label>Faction:</label>
+                            <p id="pilotFaction" class="text-primary"></p>
+                        </div>
+                        <div class="form-group flex-group" style="margin-bottom: 0;">
+                            <label for="pilotCash">Cash:</label>
+                            <input type="text" id="pilotCash" class="form-control"
+                                onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- Moths tab -->
+                <div id="moths" class="editor-tab">
+                    <div class="form-group">
+                        <label for="mothSelect" style="margin-left: 15px;">Select Moth:</label>
+                        <select id="mothSelect" class="form-control"
+                            style="max-width: 200px; margin-right: 10px;"></select>
+                    </div>
+                    <fieldset class="border p-3">
+                        <div class="form-group flex-group">
+                            <label>Type:</label>
+                            <p id="mothType" class="text-primary"></p>
+                        </div>
+                        <div class="form-group flex-group">
+                            <label>Pilot:</label>
+                            <p id="mothPilot" class="text-primary"></p>
+                        </div>
+                        <div id="passengerGroup" class="form-group flex-group" style="display: none;">
+                            <label>Passenger:</label>
+                            <p id="mothPassenger" class="text-primary"></p>
+                        </div>
+                        <hr style="margin-bottom: 25px;">
+                        <div class="form-group flex-group">
+                            <label for="mothShields">Shields:</label>
+                            <input type="text" id="mothShields" class="form-control"
+                                onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
+                        </div>
+                        <div class="form-group flex-group">
+                            <label for="mothEngineDamage">Engine Damage:</label>
+                            <input type="text" id="mothEngineDamage" class="form-control"
+                                onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
+                        </div>
+                        <div class="form-group flex-group">
+                            <label for="mothStructureDamage">Structure Damage:</label>
+                            <input type="text" id="mothStructureDamage" class="form-control"
+                                onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
+                        </div>
+                        <div class="form-group flex-group">
+                            <label for="mothCpuDamage">CPU Damage:</label>
+                            <input type="text" id="mothCpuDamage" class="form-control"
+                                onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
+                        </div>
+                        <div class="form-group flex-group">
+                            <label for="mothPowerDamage">Power Damage:</label>
+                            <input type="text" id="mothPowerDamage" class="form-control"
+                                onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
+                        </div>
+                        <div class="form-group flex-group" style="margin-bottom: 0;">
+                            <label for="mothWeaponsDamage">Weapons Damage:</label>
+                            <input type="text" id="mothWeaponsDamage" class="form-control"
+                                onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
+                        </div>
+                    </fieldset>
+                </div>
+
+                <!-- Hangars tab -->
+                <div id="hangars" class="editor-tab" style="display: none;">
+                    <div class="form-group">
+                        <label for="hangarSelect" style="margin-left: 15px;">Select Hangar:</label>
+                        <select id="hangarSelect" class="form-control"
+                            style="max-width: 200px; margin-right: 10px;"></select>
+                    </div>
+                    <fieldset class="border p-3">
+                        <div class="form-group flex-group">
+                            <label>Owner:</label>
+                            <p id="hangarOwner"></p>
+                        </div>
+                        <hr style="margin-bottom: 25px;">
+                        <div class="form-group flex-group">
+                            <label>Bay 1:</label>
+                            <p id="hangarBay1"></p>
+                        </div>
+                        <div class="form-group flex-group">
+                            <label>Bay 2:</label>
+                            <p id="hangarBay2"></p>
+                        </div>
+                        <div class="form-group flex-group">
+                            <label>Bay 3:</label>
+                            <p id="hangarBay3"></p>
+                        </div>
+                        <div class="form-group flex-group">
+                            <label>Bay 4:</label>
+                            <p id="hangarBay4"></p>
+                        </div>
+                        <div class="form-group flex-group">
+                            <label>Bay 5:</label>
+                            <p id="hangarBay5"></p>
+                        </div>
+                        <div class="form-group flex-group">
+                            <label>Bay 6:</label>
+                            <p id="hangarBay6"></p>
+                        </div>
+                        <hr style="margin-bottom: 25px;">
+                        <div class="form-group flex-group" style="margin-bottom: 0;">
+                            <label for="hangarCashHeld">Cash Held:</label>
+                            <input type="text" id="hangarCashHeld" class="form-control"
+                                onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="aboutModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header custom-header d-flex justify-content-between align-items-center">
+                    <h5 class="modal-title" id="aboutModalLabel" style="margin: 0; font-weight: bold;">About</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"
+                        style="padding: 0; margin-left: 10px;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    A simple savegame editor for the classic PC game HardWar. Written as an experiment on the data
+                    structures of the HardWar savegame file.
+                    Your savegame file must be of HardWar version UIM 6 in order to work.<br><br>
+
+                    For more reverse engineering projects or to report issues on this editor, check out my
+                    <a href="https://github.com/JulianOzelRose">GitHub</a>.<br><br>
+
+                    <i>Version 0.2</i>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn navbar-btn ok-btn" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Snackbar Container -->
+    <div id="snackbar"></div>
+
+    <!-- Scripts -->
+    <script src="assets/jquery-3.6.0.min.js"></script>
+    <script src="assets/popper.min.js"></script>
+    <script src="assets/bootstrap.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

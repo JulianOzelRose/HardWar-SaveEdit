@@ -1,0 +1,240 @@
+.card {
+    border-radius: 8px;
+    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-custom {
+    background-color: #f8f9fa;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #ddd;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.navbar-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-left: auto;
+}
+
+.navbar-btn {
+    margin-right: 10px;
+}
+
+.container {
+    padding-top: 80px;
+}
+
+.input-group-sm>.form-control,
+.input-group-sm>.input-group-append>.btn,
+.input-group-sm>.input-group-prepend>.btn {
+    padding: 5px 10px;
+    font-size: 0.875rem;
+    border-radius: 4px;
+}
+
+.form-control {
+    text-align: right !important;
+    text-align-last: right;
+    direction: ltr;
+}
+
+.editor-tab .form-control {
+    width: 100%;
+    max-width: 200px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+.editor-tab .form-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.editor-tab label {
+    flex: 1;
+    margin-right: 10px;
+}
+
+.editor-tab input {
+    flex: 2;
+}
+
+.nav-tabs .nav-link.active {
+    border-color: #dee2e6 #dee2e6 #fff;
+    background-color: #f8f9fa;
+    border-radius: 0;
+}
+
+.open-btn,
+.save-btn,
+.about-btn,
+.ok-btn {
+    width: 100px;
+    background-color: #e0e0e0;
+    color: black;
+    border: 1px solid #ccc;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+.open-btn:hover,
+.save-btn:hover,
+.about-btn:hover,
+.ok-btn:hover {
+    background-color: #d0d0d0;
+    color: black;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.open-btn:focus,
+.save-btn:focus,
+.about-btn:focus,
+.ok-btn:focus {
+    outline: none;
+    box-shadow: 0 0 4px #665;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.flex-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.flex-group label {
+    margin-right: 10px;
+}
+
+.flex-group select {
+    flex-grow: 1;
+    direction: rtl;
+    text-align: left;
+}
+
+fieldset {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+}
+
+legend {
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group label {
+    font-weight: 400;
+}
+
+.text-primary {
+    color: black;
+}
+
+#editorTabs .nav-link {
+    cursor: pointer;
+}
+
+#pilotLocation.unrecognized-location {
+    color: black !important;
+    cursor: default;
+}
+
+#pilotFaction.unrecognized-faction {
+    color: black !important;
+    cursor: default;
+}
+
+#pilotFaction.recognized-faction {
+    color: #007bff !important;
+    cursor: pointer;
+}
+
+#mothPilot.unrecognized-location {
+    color: black !important;
+    cursor: default;
+}
+
+#mothPassenger.unrecognized-location {
+    color: black !important;
+    cursor: default;
+}
+
+#mothElement.moth-type {
+    color: black !important;
+    cursor: default;
+}
+
+.modal-header.custom-header {
+    background-color: #f8f9fa;
+    height: 50px;
+    padding-left: 15px;
+    padding-right: 30px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header .close {
+    margin-left: 10px;
+}
+
+#snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #f8f9fa;
+    color: #212529;
+    text-align: center;
+    border-radius: 0.25rem;
+    padding: 0.75rem 1.25rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    position: fixed;
+    z-index: 1050;
+    top: 100px;
+    right: 30px;
+    font-size: 1rem;
+    font-weight: 500;
+    border: 1px solid #d1d1d1;
+    display: inline-block;
+}
+
+#snackbar.show {
+    visibility: visible;
+}
+
+@keyframes fadein {
+    from { top: 0; opacity: 0; }
+    to { top: 100px; opacity: 1; }
+}
+
+@keyframes fadeout {
+    from { top: 100px; opacity: 1; }
+    to { top: 0; opacity: 0; }
+}
+
+/* input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none !important;
+    margin: 0 !important;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield !important;
+    appearance: none !important;
+}
+
+@-moz-document url-prefix() {
+    input[type="number"] {
+      -moz-appearance: none !important;
+      appearance: none !important;
+    }
+} */
