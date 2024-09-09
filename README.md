@@ -3,7 +3,7 @@ This is a savegame editor for the cyberpunk retro game HardWar. This editor was 
 it does have the ability to edit basic information like pilot cash, moth health/shields, and hangar cash.
 
 ## Instructions
-To use this editor, simply navigate to the deployment page [Here](https://julianozelrose.github.io/HardWar-SaveEdit/#). You can begin editing a savegame by clicking 'Open', then selecting your savegame file.
+To use this editor, simply navigate to the deployment page [Here](https://julianozelrose.github.io/HardWar-SaveEdit/). You can begin editing a savegame by clicking 'Open', then selecting your savegame file.
 Note that this editor only supports UIM 6 savegames. Use the tab control to navigate between moths, pilots and hangars. Use the dropdown to select the moth, hangar, or pilot you wish to edit. Click 'Save' when you are done,
 and the editor will generate a new savegame file based on the modifications made.
 
