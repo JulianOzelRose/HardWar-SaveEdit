@@ -3,7 +3,7 @@ This is a savegame editor for the cyberpunk retro game HardWar. This editor was 
 it does have the ability to edit basic information like pilot cash, moth health/shields, and hangar cash.
 
 ## Instructions
-To use this editor, simply navigate to the deployment page [Here](https://julianozelrose.github.io/HardWar-SaveEdit/#). You can begin editing a savegame by clicking 'Browse', then selecting your savegame file.
+To use this editor, simply navigate to the deployment page [Here](https://julianozelrose.github.io/HardWar-SaveEdit/#). You can begin editing a savegame by clicking 'Open', then selecting your savegame file.
 Note that this editor only supports UIM 6 savegames. Use the tab control to navigate between moths, pilots and hangars. Use the dropdown to select the moth, hangar, or pilot you wish to edit. Click 'Save' when you are done,
 and the editor will generate a new savegame file based on the modifications made.
 
@@ -16,7 +16,7 @@ file. There are a few exceptions, namely the dynamic player pointer offset and t
 Because the entity lists for hangars and pilots are both dynamically allocated themselves, as well as nested
 between more dynamic data, it presents many challenges for accurately parsing the game information.
 
-| **Data Structure** | **Iterator** | **Start**    |
+| **Entity List**    | **Iterator** | **Start**    |
 | :---               | :---         | :---         |
 | Moth               | 0x458        | 0xE0C        |
 | Hangar             | 0x964        | Dynamic      |
