@@ -223,7 +223,7 @@ function parseMoths() {
         const weapons_damage = dataView.getInt32(currentOffset + MOTH_WEAPONS_DMG_OFFSET, true);
         const hangar = dataView.getUint32(currentOffset + MOTH_HANGAR_OFFSET, true);
         const address = dataView.getUint32(currentOffset - MOTH_POINTER_OFFSET, true);
-        const type = dataView.getUint8(currentOffset + MOTH_TYPE_OFFSET, true);
+        const type = dataView.getUint32(currentOffset + MOTH_TYPE_OFFSET, true);
         const name = `MOTH_0x${index == 0 ? '????????' : address.toString(16).toUpperCase()}`;   // First moth isn't preceded by dynamic address
         const values_changed = false;
 
