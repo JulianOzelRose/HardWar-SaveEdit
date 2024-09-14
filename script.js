@@ -213,19 +213,13 @@ function parseMoths() {
 
     // Loop until the first invalid moth is reached
     while (currentOffset <= HANGAR_LIST_START) {
-        const pilot = dataView.getUint32(currentOffset + MOTH_PILOT_OFFSET, true);
-        const passenger = dataView.getUint32(currentOffset + MOTH_PASSENGER_OFFSET, true);
+        const type = dataView.getUint32(currentOffset + MOTH_TYPE_OFFSET, true);
         const shields = dataView.getInt32(currentOffset + MOTH_SHIELDS_OFFSET, true);
         const engine_damage = dataView.getInt32(currentOffset + MOTH_ENGINE_DMG_OFFSET, true);
         const structure_damage = dataView.getInt32(currentOffset + MOTH_STRUCTURE_DMG_OFFSET, true);
         const cpu_damage = dataView.getInt32(currentOffset + MOTH_CPU_DMG_OFFSET, true);
         const power_damage = dataView.getInt32(currentOffset + MOTH_POWER_DMG_OFFSET, true);
         const weapons_damage = dataView.getInt32(currentOffset + MOTH_WEAPONS_DMG_OFFSET, true);
-        const hangar = dataView.getUint32(currentOffset + MOTH_HANGAR_OFFSET, true);
-        const address = dataView.getUint32(currentOffset - MOTH_POINTER_OFFSET, true);
-        const type = dataView.getUint32(currentOffset + MOTH_TYPE_OFFSET, true);
-        const name = `MOTH_0x${index == 0 ? '????????' : address.toString(16).toUpperCase()}`;   // First moth isn't preceded by dynamic address
-        const values_changed = false;
 
         // Break loop on first invalid moth type
         if (!MOTH_TYPE[type]) {
@@ -238,6 +232,13 @@ function parseMoths() {
             || cpu_damage > MOTH_MAX_CPU_DMG || power_damage > MOTH_MAX_POWER_DMG || weapons_damage > MOTH_MAX_WEAPONS_DMG) {
             break;
         }
+
+        const pilot = dataView.getUint32(currentOffset + MOTH_PILOT_OFFSET, true);
+        const passenger = dataView.getUint32(currentOffset + MOTH_PASSENGER_OFFSET, true);
+        const hangar = dataView.getUint32(currentOffset + MOTH_HANGAR_OFFSET, true);
+        const address = dataView.getUint32(currentOffset - MOTH_POINTER_OFFSET, true);
+        const name = `MOTH_0x${index == 0 ? '????????' : address.toString(16).toUpperCase()}`;   // First moth isn't preceded by dynamic address
+        const values_changed = false;
 
         moths[name] = {
             name: name,
