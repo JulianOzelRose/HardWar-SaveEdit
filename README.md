@@ -102,7 +102,7 @@ The value stored on offset 0x1DC stores the "type" of moth. The remaining offset
 | :---       | :---      | :---            |
 | 0x010      | String    | Display Name    |
 | 0x048      | UInt32    | Owner           |
-| 0x8BC      | UInt32    | Cash Held       |
+| 0x8BC      | Int32     | Cash Held       |
 | 0x8D8      | UInt32    | Bay 1           |
 | 0x8DC      | UInt32    | Bay 2           |
 | 0x8E0      | UInt32    | Bay 3           |
@@ -120,7 +120,7 @@ hangar bay. If the hangar bay is empty, the pointer is null.
 | 0x004      | String    | Name            |
 | 0x02C      | UInt32    | Status          |
 | 0x030      | UInt32    | Location        |
-| 0x03C      | UInt32    | Cash            |
+| 0x03C      | Int32     | Cash            |
 | 0x040      | UInt32    | Pilot Type      |
 | 0x298      | UInt32    | Faction         |
 
