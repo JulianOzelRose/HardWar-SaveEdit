@@ -148,11 +148,11 @@ function parsePilots() {
                 continue;
             }
 
-            const status = dataView.getUint8(pilotOffset + PILOT_STATUS_OFFSET);
+            const status = dataView.getUint32(pilotOffset + PILOT_STATUS_OFFSET, true);
             const cash = dataView.getInt32(pilotOffset + PILOT_CASH_OFFSET, true);
             const location = dataView.getUint32(pilotOffset + PILOT_LOCATION_OFFSET, true);
             const faction = dataView.getUint32(pilotOffset + PILOT_FACTION_OFFSET, true);
-            const type = dataView.getUint8(pilotOffset + PILOT_TYPE_OFFSET, true);
+            const type = dataView.getUint32(pilotOffset + PILOT_TYPE_OFFSET, true);
             const address = dataView.getUint32(pilotOffset - PILOT_POINTER_OFFSET, true);
             const values_changed = false;
 
@@ -213,19 +213,13 @@ function parseMoths() {
 
     // Loop until the first invalid moth is reached
     while (currentOffset <= HANGAR_LIST_START) {
-        const pilot = dataView.getUint32(currentOffset + MOTH_PILOT_OFFSET, true);
-        const passenger = dataView.getUint32(currentOffset + MOTH_PASSENGER_OFFSET, true);
+        const type = dataView.getUint32(currentOffset + MOTH_TYPE_OFFSET, true);
         const shields = dataView.getInt32(currentOffset + MOTH_SHIELDS_OFFSET, true);
         const engine_damage = dataView.getInt32(currentOffset + MOTH_ENGINE_DMG_OFFSET, true);
         const structure_damage = dataView.getInt32(currentOffset + MOTH_STRUCTURE_DMG_OFFSET, true);
         const cpu_damage = dataView.getInt32(currentOffset + MOTH_CPU_DMG_OFFSET, true);
         const power_damage = dataView.getInt32(currentOffset + MOTH_POWER_DMG_OFFSET, true);
         const weapons_damage = dataView.getInt32(currentOffset + MOTH_WEAPONS_DMG_OFFSET, true);
-        const hangar = dataView.getUint32(currentOffset + MOTH_HANGAR_OFFSET, true);
-        const address = dataView.getUint32(currentOffset - MOTH_POINTER_OFFSET, true);
-        const type = dataView.getUint8(currentOffset + MOTH_TYPE_OFFSET, true);
-        const name = `MOTH_0x${index == 0 ? '????????' : address.toString(16).toUpperCase()}`;   // First moth isn't preceded by dynamic address
-        const values_changed = false;
 
         // Break loop on first invalid moth type
         if (!MOTH_TYPE[type]) {
@@ -238,6 +232,13 @@ function parseMoths() {
             || cpu_damage > MOTH_MAX_CPU_DMG || power_damage > MOTH_MAX_POWER_DMG || weapons_damage > MOTH_MAX_WEAPONS_DMG) {
             break;
         }
+
+        const pilot = dataView.getUint32(currentOffset + MOTH_PILOT_OFFSET, true);
+        const passenger = dataView.getUint32(currentOffset + MOTH_PASSENGER_OFFSET, true);
+        const hangar = dataView.getUint32(currentOffset + MOTH_HANGAR_OFFSET, true);
+        const address = dataView.getUint32(currentOffset - MOTH_POINTER_OFFSET, true);
+        const name = `MOTH_0x${index == 0 ? '????????' : address.toString(16).toUpperCase()}`;   // First moth isn't preceded by dynamic address
+        const values_changed = false;
 
         moths[name] = {
             name: name,
@@ -738,6 +739,48 @@ function updateMothInfo(mothName) {
             }
         } else {
             formGroupPassenger.style.display = 'none';
+        }
+
+        const hangarElement = document.getElementById("mothHangar");
+
+        const hangarPointer = selectedMoth.hangar;
+        let hangarName = "";
+        let isRecognizedHangar = false;
+
+        if (hangarPointer === 0) {
+            hangarName = "None";
+        } else {
+            for (const hangar in hangars) {
+                if (parseInt(hangars[hangar].address) === hangarPointer) {
+                    hangarName = hangars[hangar].name;
+                    isRecognizedHangar = true;
+                    break;
+                }
+            }
+        }
+
+        hangarElement.textContent = hangarName;
+
+        if (isRecognizedHangar) {
+            hangarElement.classList.remove('unrecognized-location');
+            hangarElement.style.cursor = 'pointer';
+            hangarElement.style.color = '#007bff';
+
+            hangarElement.replaceWith(hangarElement.cloneNode(true));
+            const newHangarElement = document.getElementById('mothHangar');
+
+            newHangarElement.addEventListener('click', function () {
+                handleLocationClick(hangarName);
+            });
+        } else {
+            hangarElement.classList.add('unrecognized-location');
+            hangarElement.style.cursor = 'default';
+            hangarElement.style.color = 'black';
+
+            hangarElement.replaceWith(hangarElement.cloneNode(true));
+            const newHangarElement = document.getElementById('mothHangar');
+
+            newHangarElement.textContent = "None";
         }
     }
 }
