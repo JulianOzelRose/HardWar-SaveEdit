@@ -148,11 +148,11 @@ function parsePilots() {
                 continue;
             }
 
-            const status = dataView.getUint8(pilotOffset + PILOT_STATUS_OFFSET);
+            const status = dataView.getUint32(pilotOffset + PILOT_STATUS_OFFSET, true);
             const cash = dataView.getInt32(pilotOffset + PILOT_CASH_OFFSET, true);
             const location = dataView.getUint32(pilotOffset + PILOT_LOCATION_OFFSET, true);
             const faction = dataView.getUint32(pilotOffset + PILOT_FACTION_OFFSET, true);
-            const type = dataView.getUint8(pilotOffset + PILOT_TYPE_OFFSET, true);
+            const type = dataView.getUint32(pilotOffset + PILOT_TYPE_OFFSET, true);
             const address = dataView.getUint32(pilotOffset - PILOT_POINTER_OFFSET, true);
             const values_changed = false;
 
