@@ -739,6 +739,48 @@ function updateMothInfo(mothName) {
         } else {
             formGroupPassenger.style.display = 'none';
         }
+
+        const hangarElement = document.getElementById("mothHangar");
+
+        const hangarPointer = selectedMoth.hangar;
+        let hangarName = "";
+        let isRecognizedHangar = false;
+
+        if (hangarPointer === 0) {
+            hangarName = "None";
+        } else {
+            for (const hangar in hangars) {
+                if (parseInt(hangars[hangar].address) === hangarPointer) {
+                    hangarName = hangars[hangar].name;
+                    isRecognizedHangar = true;
+                    break;
+                }
+            }
+        }
+
+        hangarElement.textContent = hangarName;
+
+        if (isRecognizedHangar) {
+            hangarElement.classList.remove('unrecognized-location');
+            hangarElement.style.cursor = 'pointer';
+            hangarElement.style.color = '#007bff';
+
+            hangarElement.replaceWith(hangarElement.cloneNode(true));
+            const newHangarElement = document.getElementById('mothHangar');
+
+            newHangarElement.addEventListener('click', function () {
+                handleLocationClick(hangarName);
+            });
+        } else {
+            hangarElement.classList.add('unrecognized-location');
+            hangarElement.style.cursor = 'default';
+            hangarElement.style.color = 'black';
+
+            hangarElement.replaceWith(hangarElement.cloneNode(true));
+            const newHangarElement = document.getElementById('mothHangar');
+
+            newHangarElement.textContent = "None";
+        }
     }
 }
 

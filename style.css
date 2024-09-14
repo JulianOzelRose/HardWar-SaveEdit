@@ -173,6 +173,11 @@ legend {
     cursor: default;
 }
 
+#mothHangar.unrecognized-location {
+    color: black !important;
+    cursor: default;
+}
+
 .modal-header.custom-header {
     background-color: #f8f9fa;
     height: 50px;
