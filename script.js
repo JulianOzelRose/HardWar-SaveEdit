@@ -4,22 +4,19 @@ let HANGAR_LIST_START = 0;
 let dataView = null;
 let originalFilename = '';
 
+const LOCATION_OF_PILOT_ENTRY_COUNT = 0xDF4;
+const LOCATION_OF_OFFSET_TO_PILOT_ENTRIES = 0xDF8;
+const LOCATION_OF_OFFSET_TO_PILOT_POINTERS = 0xDFC;
+
 // Pilot constants and offsets
 const PILOT_ITERATOR = 0x37C;
 const PILOT_NAME_MAX_LENGTH = 19;
-const PILOT_SIGNATURE_ADJUST = 0x44;
 const PILOT_NAME_OFFSET = 0x4;
 const PILOT_STATUS_OFFSET = 0x2C;
 const PILOT_LOCATION_OFFSET = 0x30;
 const PILOT_CASH_OFFSET = 0x3C;
 const PILOT_TYPE_OFFSET = 0x40;
-const PILOT_POINTER_OFFSET = 0x48;
 const PILOT_FACTION_OFFSET = 0x298;
-const PILOT_SIGNATURE = new Uint8Array([
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-    0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-]);
 const PILOT_STATUS = {
     1: "In a moth",
     2: "On foot",
@@ -96,49 +93,34 @@ function verifyVersion() {
     return versionString === "UIM.06";
 }
 
+function getPilotEntryCount() {
+    let pilotEntryCount = dataView.getUint32(LOCATION_OF_PILOT_ENTRY_COUNT, true);
+    return pilotEntryCount;
+}
+
 function getPilotBaseOffset() {
-    const signatureLength = PILOT_SIGNATURE.length;
+    let pilotEntryOffset = dataView.getUint32(LOCATION_OF_OFFSET_TO_PILOT_ENTRIES, true);
+    return pilotEntryOffset;
+}
 
-    for (let offset = PILOT_LIST_START; offset < EOF_OFFSET - signatureLength; offset++) {
-        let match = true;
-
-        for (let i = 0; i < signatureLength; i++) {
-            if (dataView.getUint8(offset + i) !== PILOT_SIGNATURE[i]) {
-                match = false;
-                break;
-            }
-        }
-
-        if (match) {
-            // Check for valid ANSI string name
-            const potentialName = readString((offset + PILOT_SIGNATURE_ADJUST) + PILOT_NAME_OFFSET);
-            if (potentialName) {
-                return (offset + PILOT_SIGNATURE_ADJUST);
-            }
-        }
-    }
-
-    return -1;
+function getPilotPointersStart() {
+    let pilotPointersStart = dataView.getUint32(LOCATION_OF_OFFSET_TO_PILOT_POINTERS, true);
+    return pilotPointersStart;
 }
 
 function parsePilots() {
+    const pilotEntryCount = getPilotEntryCount();
     const pilotBaseOffset = getPilotBaseOffset();
+    const pilotPointersStart = getPilotPointersStart();
 
     if (pilotBaseOffset === -1) {
         console.warn("Unable to find pilot base offset.");
         return;
     }
 
-    let pilotOffset = pilotBaseOffset;
-
-    while (pilotOffset < EOF_OFFSET) {
+    for (let pilotIndex = 0; pilotIndex < pilotEntryCount; ++pilotIndex) {
+        const pilotOffset = pilotBaseOffset + (pilotIndex * PILOT_ITERATOR);
         let isPilot = true;
-        for (let i = 0; i < PILOT_SIGNATURE.length; i++) {
-            if (dataView.getUint8(pilotOffset + i - PILOT_SIGNATURE_ADJUST) !== PILOT_SIGNATURE[i]) {
-                isPilot = false;
-            }
-        }
-
         if (isPilot) {
             const name = readString(pilotOffset + PILOT_NAME_OFFSET);
 
@@ -153,7 +135,7 @@ function parsePilots() {
             const location = dataView.getUint32(pilotOffset + PILOT_LOCATION_OFFSET, true);
             const faction = dataView.getUint32(pilotOffset + PILOT_FACTION_OFFSET, true);
             const type = dataView.getUint32(pilotOffset + PILOT_TYPE_OFFSET, true);
-            const address = dataView.getUint32(pilotOffset - PILOT_POINTER_OFFSET, true);
+            const address = dataView.getUint32(pilotPointersStart + (4 * pilotIndex), true);
             const values_changed = false;
 
             let locationName = `0x${location.toString(16).toUpperCase()}`;
@@ -201,7 +183,6 @@ function parsePilots() {
 
         }
 
-        pilotOffset += PILOT_ITERATOR;
     }
 
     console.log(`Pilots (${Object.keys(pilots).length}):`, pilots);
