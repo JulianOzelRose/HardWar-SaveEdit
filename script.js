@@ -4,6 +4,7 @@ let HANGAR_LIST_START = 0;
 let dataView = null;
 let originalFilename = '';
 
+const LOCATION_OF_OFFSET_TO_HANGAR_ENTRIES = 0xDE0;
 const LOCATION_OF_PILOT_ENTRY_COUNT = 0xDF4;
 const LOCATION_OF_OFFSET_TO_PILOT_ENTRIES = 0xDF8;
 const LOCATION_OF_OFFSET_TO_PILOT_POINTERS = 0xDFC;
@@ -59,11 +60,6 @@ const HANGAR_OWNER_OFFSET = 0x48;
 const HANGAR_POINTER_OFFSET = 0x2C;
 const HANGAR_CASH_HELD_OFFSET = 0x8BC;
 const HANGAR_BAY_OFFSETS = [0x8D8, 0x8DC, 0x8E0, 0x8E4, 0x8E8, 0x8EC];
-const LIMBO_HANGAR_SIGNATURE = new Uint8Array([
-    0xE8, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4C, 0x69, 0x6D, 0x62,
-    0x6F, 0x21, 0x00, 0x00
-]);
 
 // Moth shield/damage constants
 const MOTH_MAX_SHIELDS = 0x4000;
@@ -304,46 +300,8 @@ function setLimboHangarAddress(finalHangarOffset) {
     limboHangar.address = limboHangarPointerAddress;
 }
 
-// function findAllOffsets(signature) {
-//     const memoryContent = new Uint8Array(dataView.buffer.slice(0, EOF_OFFSET));
-//     const offsets = [];
-//     for (let offset = 0; offset < memoryContent.length - signature.length; offset++) {
-//         let match = true;
-//         for (let i = 0; i < signature.length; i++) {
-//             if (memoryContent[offset + i] !== signature[i]) {
-//                 match = false;
-//                 break;
-//             }
-//         }
-//         if (match) {
-//             offsets.push(offset);
-//         }
-//     }
-//     return offsets;
-// }
-
 function getHangarListStart() {
-    const memoryContent = new Uint8Array(dataView.buffer.slice(0, EOF_OFFSET));
-    const signature = LIMBO_HANGAR_SIGNATURE;
-    const signatureLength = signature.length;
-
-    for (let offset = 0; offset <= memoryContent.length - signatureLength; offset++) {
-        let match = true;
-
-        for (let i = 0; i < signatureLength; i++) {
-            if (memoryContent[offset + i] !== signature[i]) {
-                match = false;
-                break;
-            }
-        }
-
-        if (match) {
-            return offset;
-        }
-    }
-
-    console.warn("Unable to find hangar entity list.");
-    return -1;
+    return dataView.getUint32(LOCATION_OF_OFFSET_TO_HANGAR_ENTRIES, true);
 }
 
 function populatePilotDropdown() {
