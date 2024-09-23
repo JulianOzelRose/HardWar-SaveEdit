@@ -6,6 +6,8 @@ let dataView = null;
 let originalFilename = '';
 
 const LOCATION_OF_MOTH_ENTRY_COUNT = 0xDD0;
+const LOCATION_OF_OFFSET_TO_MOTH_ENTRIES = 0xDD4;
+const LOCATION_OF_OFFSET_TO_MOTH_POINTERS = 0xDD8;
 const LOCATION_OF_OFFSET_TO_HANGAR_ENTRIES = 0xDE0;
 const LOCATION_OF_PILOT_ENTRY_COUNT = 0xDF4;
 const LOCATION_OF_OFFSET_TO_PILOT_ENTRIES = 0xDF8;
@@ -40,7 +42,6 @@ const MOTH_WEAPONS_DMG_OFFSET = 0x2A8;
 const MOTH_PILOT_OFFSET = 0x2DC;
 const MOTH_PASSENGER_OFFSET = 0x2E0;
 const MOTH_POINTER_OFFSET = 0x160;
-const MOTH_LIST_START = 0xE0C;
 const MOTH_ITERATOR = 0x448;
 const MOTH_TYPE = {
     1: "Moon Moth",
@@ -109,6 +110,18 @@ function getPilotPointersStart() {
 function getNumMoths() {
     let numMoths = dataView.getUint32(LOCATION_OF_MOTH_ENTRY_COUNT, true);
     return numMoths;
+}
+
+function getMothListStart() {
+    let mothListStart = dataView.getUint32(LOCATION_OF_OFFSET_TO_MOTH_ENTRIES, true);
+    console.log("Location of moth entries: " + mothListStart.toString(16));
+    return mothListStart;
+}
+
+function getMothPointersStart() {
+    let mothPointersStart = dataView.getUint32(LOCATION_OF_OFFSET_TO_MOTH_POINTERS, true);
+    console.log("Location of moth pointers: " + mothPointersStart.toString(16));
+    return mothPointersStart;
 }
 
 function parsePilots() {
@@ -192,9 +205,13 @@ function parsePilots() {
 
 function parseMoths() {
     NUM_MOTHS = getNumMoths();
-    let currentOffset = MOTH_LIST_START;
+    const mothListStart = getMothListStart();
+    const mothPointersStart = getMothPointersStart();
 
+    // Loop until the first invalid moth is reached
     for (let index = 0; index < NUM_MOTHS; index++) {
+        const currentOffset = mothListStart + (index * MOTH_ITERATOR);
+        const currentAddressOffset = mothPointersStart + (index * 4);
         const type = dataView.getUint32(currentOffset + MOTH_TYPE_OFFSET, true);
         const shields = dataView.getInt32(currentOffset + MOTH_SHIELDS_OFFSET, true);
         const engine_damage = dataView.getInt32(currentOffset + MOTH_ENGINE_DMG_OFFSET, true);
@@ -206,8 +223,8 @@ function parseMoths() {
         const pilot = dataView.getUint32(currentOffset + MOTH_PILOT_OFFSET, true);
         const passenger = dataView.getUint32(currentOffset + MOTH_PASSENGER_OFFSET, true);
         const hangar = dataView.getUint32(currentOffset + MOTH_HANGAR_OFFSET, true);
-        const address = dataView.getUint32(currentOffset - MOTH_POINTER_OFFSET, true);
-        const name = `MOTH_0x${index == 0 ? '????????' : address.toString(16).toUpperCase()}`;   // First moth isn't preceded by dynamic address
+        const address = dataView.getUint32(currentAddressOffset, true);
+        const name = `MOTH_0x${address.toString(16).toUpperCase()}`;
         const values_changed = false;
 
         moths[name] = {
@@ -227,7 +244,6 @@ function parseMoths() {
             values_changed: values_changed
         };
 
-        currentOffset += MOTH_ITERATOR;
     }
 
     console.log(`Moths (${Object.keys(moths).length}): `, moths);
