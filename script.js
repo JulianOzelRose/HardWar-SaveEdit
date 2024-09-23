@@ -129,7 +129,6 @@ function parsePilots() {
 
             // Skip if the name length exceeds max name length
             if (name.length > PILOT_NAME_MAX_LENGTH) {
-                pilotOffset += PILOT_ITERATOR;
                 continue;
             }
 
