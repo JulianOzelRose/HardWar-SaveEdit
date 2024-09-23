@@ -1,9 +1,11 @@
 let EOF_OFFSET = 0;
 let PILOT_LIST_START = 0;
 let HANGAR_LIST_START = 0;
+let NUM_MOTHS = 0;
 let dataView = null;
 let originalFilename = '';
 
+const LOCATION_OF_MOTH_ENTRY_COUNT = 0xDD0;
 const LOCATION_OF_OFFSET_TO_HANGAR_ENTRIES = 0xDE0;
 const LOCATION_OF_PILOT_ENTRY_COUNT = 0xDF4;
 const LOCATION_OF_OFFSET_TO_PILOT_ENTRIES = 0xDF8;
@@ -104,6 +106,11 @@ function getPilotPointersStart() {
     return pilotPointersStart;
 }
 
+function getNumMoths() {
+    let numMoths = dataView.getUint32(LOCATION_OF_MOTH_ENTRY_COUNT, true);
+    return numMoths;
+}
+
 function parsePilots() {
     const pilotEntryCount = getPilotEntryCount();
     const pilotBaseOffset = getPilotBaseOffset();
@@ -185,11 +192,10 @@ function parsePilots() {
 }
 
 function parseMoths() {
+    NUM_MOTHS = getNumMoths();
     let currentOffset = MOTH_LIST_START;
-    let index = 0;
 
-    // Loop until the first invalid moth is reached
-    while (currentOffset <= HANGAR_LIST_START) {
+    for (let index = 0; index < NUM_MOTHS; index++) {
         const type = dataView.getUint32(currentOffset + MOTH_TYPE_OFFSET, true);
         const shields = dataView.getInt32(currentOffset + MOTH_SHIELDS_OFFSET, true);
         const engine_damage = dataView.getInt32(currentOffset + MOTH_ENGINE_DMG_OFFSET, true);
@@ -197,18 +203,6 @@ function parseMoths() {
         const cpu_damage = dataView.getInt32(currentOffset + MOTH_CPU_DMG_OFFSET, true);
         const power_damage = dataView.getInt32(currentOffset + MOTH_POWER_DMG_OFFSET, true);
         const weapons_damage = dataView.getInt32(currentOffset + MOTH_WEAPONS_DMG_OFFSET, true);
-
-        // Break loop on first invalid moth type
-        if (!MOTH_TYPE[type]) {
-            break;
-        }
-
-        // Break loop on first invalid moth shield/damage values
-        if (shields < 0 || engine_damage < 0 || structure_damage < 0 || cpu_damage < 0 || power_damage < 0 || weapons_damage < 0
-            || shields > MOTH_MAX_SHIELDS || engine_damage > MOTH_MAX_ENGINE_DMG || structure_damage > MOTH_MAX_STRUCTURE_DMG
-            || cpu_damage > MOTH_MAX_CPU_DMG || power_damage > MOTH_MAX_POWER_DMG || weapons_damage > MOTH_MAX_WEAPONS_DMG) {
-            break;
-        }
 
         const pilot = dataView.getUint32(currentOffset + MOTH_PILOT_OFFSET, true);
         const passenger = dataView.getUint32(currentOffset + MOTH_PASSENGER_OFFSET, true);
@@ -235,7 +229,6 @@ function parseMoths() {
         };
 
         currentOffset += MOTH_ITERATOR;
-        index++;
     }
 
     console.log(`Moths (${Object.keys(moths).length}): `, moths);
