@@ -2,6 +2,7 @@ let EOF_OFFSET = 0;
 let PILOT_LIST_START = 0;
 let HANGAR_LIST_START = 0;
 let NUM_MOTHS = 0;
+let NUM_HANGARS = 0;
 let dataView = null;
 let originalFilename = '';
 
@@ -57,7 +58,6 @@ const MOTH_TYPE = {
 };
 
 // Hangar constants and offsets
-const NUM_HANGARS = 251;
 const HANGAR_ITERATOR = 0x964;
 const HANGAR_NAME_OFFSET = 0x10;
 const HANGAR_ENEMIES_LIST_OFFSET = 0x3C;
@@ -255,9 +255,10 @@ function parseMoths() {
 
 function parseHangars() {
     HANGAR_LIST_START = getHangarListStart();
-    const hangarPointersStart = getHangarPointersStart()
+    NUM_HANGARS = getHangarEntryCount();
+    const hangarPointersStart = getHangarPointersStart();
 
-    for (let index = 0; index < NUM_HANGARS + 1; index++) {
+    for (let index = 0; index < NUM_HANGARS; index++) {
         const hangarOffset = HANGAR_LIST_START + (HANGAR_ITERATOR * index);
         const name = readString(hangarOffset + HANGAR_NAME_OFFSET, true);
         const owner = dataView.getUint32(hangarOffset + HANGAR_OWNER_OFFSET, true);
