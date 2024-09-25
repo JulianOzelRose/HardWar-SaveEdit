@@ -1,10 +1,17 @@
 let EOF_OFFSET = 0;
 let PILOT_LIST_START = 0;
 let HANGAR_LIST_START = 0;
+let NUM_MOTHS = 0;
+let NUM_HANGARS = 0;
 let dataView = null;
 let originalFilename = '';
 
+const LOCATION_OF_MOTH_ENTRY_COUNT = 0xDD0;
+const LOCATION_OF_OFFSET_TO_MOTH_ENTRIES = 0xDD4;
+const LOCATION_OF_OFFSET_TO_MOTH_POINTERS = 0xDD8;
+const LOCATION_OF_HANGAR_ENTRY_COUNT = 0xDDC;
 const LOCATION_OF_OFFSET_TO_HANGAR_ENTRIES = 0xDE0;
+const LOCATION_OF_OFFSET_TO_HANGAR_POINTERS = 0xDE4;
 const LOCATION_OF_PILOT_ENTRY_COUNT = 0xDF4;
 const LOCATION_OF_OFFSET_TO_PILOT_ENTRIES = 0xDF8;
 const LOCATION_OF_OFFSET_TO_PILOT_POINTERS = 0xDFC;
@@ -38,7 +45,6 @@ const MOTH_WEAPONS_DMG_OFFSET = 0x2A8;
 const MOTH_PILOT_OFFSET = 0x2DC;
 const MOTH_PASSENGER_OFFSET = 0x2E0;
 const MOTH_POINTER_OFFSET = 0x160;
-const MOTH_LIST_START = 0xE0C;
 const MOTH_ITERATOR = 0x448;
 const MOTH_TYPE = {
     1: "Moon Moth",
@@ -52,7 +58,6 @@ const MOTH_TYPE = {
 };
 
 // Hangar constants and offsets
-const NUM_HANGARS = 251;
 const HANGAR_ITERATOR = 0x964;
 const HANGAR_NAME_OFFSET = 0x10;
 const HANGAR_ENEMIES_LIST_OFFSET = 0x3C;
@@ -104,10 +109,27 @@ function getPilotPointersStart() {
     return pilotPointersStart;
 }
 
+function getNumMoths() {
+    let numMoths = dataView.getUint32(LOCATION_OF_MOTH_ENTRY_COUNT, true);
+    return numMoths;
+}
+
+function getMothListStart() {
+    let mothListStart = dataView.getUint32(LOCATION_OF_OFFSET_TO_MOTH_ENTRIES, true);
+    return mothListStart;
+}
+
+function getMothPointersStart() {
+    let mothPointersStart = dataView.getUint32(LOCATION_OF_OFFSET_TO_MOTH_POINTERS, true);
+    return mothPointersStart;
+}
+
 function parsePilots() {
     const pilotEntryCount = getPilotEntryCount();
     const pilotBaseOffset = getPilotBaseOffset();
     const pilotPointersStart = getPilotPointersStart();
+
+    PILOT_LIST_START = pilotBaseOffset;
 
     if (pilotBaseOffset === -1) {
         console.warn("Unable to find pilot base offset.");
@@ -122,7 +144,6 @@ function parsePilots() {
 
             // Skip if the name length exceeds max name length
             if (name.length > PILOT_NAME_MAX_LENGTH) {
-                pilotOffset += PILOT_ITERATOR;
                 continue;
             }
 
@@ -185,11 +206,14 @@ function parsePilots() {
 }
 
 function parseMoths() {
-    let currentOffset = MOTH_LIST_START;
-    let index = 0;
+    NUM_MOTHS = getNumMoths();
+    const mothListStart = getMothListStart();
+    const mothPointersStart = getMothPointersStart();
 
     // Loop until the first invalid moth is reached
-    while (currentOffset <= HANGAR_LIST_START) {
+    for (let index = 0; index < NUM_MOTHS; index++) {
+        const currentOffset = mothListStart + (index * MOTH_ITERATOR);
+        const currentAddressOffset = mothPointersStart + (index * 4);
         const type = dataView.getUint32(currentOffset + MOTH_TYPE_OFFSET, true);
         const shields = dataView.getInt32(currentOffset + MOTH_SHIELDS_OFFSET, true);
         const engine_damage = dataView.getInt32(currentOffset + MOTH_ENGINE_DMG_OFFSET, true);
@@ -198,23 +222,11 @@ function parseMoths() {
         const power_damage = dataView.getInt32(currentOffset + MOTH_POWER_DMG_OFFSET, true);
         const weapons_damage = dataView.getInt32(currentOffset + MOTH_WEAPONS_DMG_OFFSET, true);
 
-        // Break loop on first invalid moth type
-        if (!MOTH_TYPE[type]) {
-            break;
-        }
-
-        // Break loop on first invalid moth shield/damage values
-        if (shields < 0 || engine_damage < 0 || structure_damage < 0 || cpu_damage < 0 || power_damage < 0 || weapons_damage < 0
-            || shields > MOTH_MAX_SHIELDS || engine_damage > MOTH_MAX_ENGINE_DMG || structure_damage > MOTH_MAX_STRUCTURE_DMG
-            || cpu_damage > MOTH_MAX_CPU_DMG || power_damage > MOTH_MAX_POWER_DMG || weapons_damage > MOTH_MAX_WEAPONS_DMG) {
-            break;
-        }
-
         const pilot = dataView.getUint32(currentOffset + MOTH_PILOT_OFFSET, true);
         const passenger = dataView.getUint32(currentOffset + MOTH_PASSENGER_OFFSET, true);
         const hangar = dataView.getUint32(currentOffset + MOTH_HANGAR_OFFSET, true);
-        const address = dataView.getUint32(currentOffset - MOTH_POINTER_OFFSET, true);
-        const name = `MOTH_0x${index == 0 ? '????????' : address.toString(16).toUpperCase()}`;   // First moth isn't preceded by dynamic address
+        const address = dataView.getUint32(currentAddressOffset, true);
+        const name = `MOTH_0x${address.toString(16).toUpperCase()}`;
         const values_changed = false;
 
         moths[name] = {
@@ -234,8 +246,6 @@ function parseMoths() {
             values_changed: values_changed
         };
 
-        currentOffset += MOTH_ITERATOR;
-        index++;
     }
 
     console.log(`Moths (${Object.keys(moths).length}): `, moths);
@@ -243,26 +253,15 @@ function parseMoths() {
 
 function parseHangars() {
     HANGAR_LIST_START = getHangarListStart();
+    NUM_HANGARS = getHangarEntryCount();
+    const hangarPointersStart = getHangarPointersStart();
 
-    if (HANGAR_LIST_START == -1) {
-        showSnackbar("Error parsing hangar data.");
-        return;
-    }
-
-    let hangarOffsets = [];
-    hangarOffsets[0] = HANGAR_LIST_START;
-
-    for (let i = 1; i < NUM_HANGARS + 1; i++) {
-        hangarOffsets[i] = hangarOffsets[i - 1] + HANGAR_ITERATOR;
-    }
-
-    PILOT_LIST_START = hangarOffsets[NUM_HANGARS] + HANGAR_ITERATOR;
-
-    hangarOffsets.forEach(hangarOffset => {
+    for (let index = 0; index < NUM_HANGARS; index++) {
+        const hangarOffset = HANGAR_LIST_START + (HANGAR_ITERATOR * index);
         const name = readString(hangarOffset + HANGAR_NAME_OFFSET, true);
         const owner = dataView.getUint32(hangarOffset + HANGAR_OWNER_OFFSET, true);
         const cash_held = dataView.getInt32(hangarOffset + HANGAR_CASH_HELD_OFFSET, true);
-        const address = dataView.getInt32(hangarOffset - HANGAR_POINTER_OFFSET, true);
+        const address = dataView.getInt32(hangarPointersStart + (4 * index), true);
         const values_changed = false;
 
         const bays = HANGAR_BAY_OFFSETS.map(offset => {
@@ -285,23 +284,22 @@ function parseHangars() {
             bays: bays,
             values_changed: values_changed
         };
-    });
 
-    const finalHangarOffset = hangarOffsets[NUM_HANGARS];
-    setLimboHangarAddress(finalHangarOffset);
+    }
 
     console.log(`Hangars (${Object.keys(hangars).length}): `, hangars);
 }
 
-function setLimboHangarAddress(finalHangarOffset) {
-    const limboHangarPointerAddressOffset = finalHangarOffset + HANGAR_ITERATOR;
-    const limboHangarPointerAddress = dataView.getUint32(limboHangarPointerAddressOffset, true);
-    const limboHangar = hangars["Limbo!"];
-    limboHangar.address = limboHangarPointerAddress;
+function getHangarEntryCount() {
+    return dataView.getUint32(LOCATION_OF_HANGAR_ENTRY_COUNT, true);
 }
 
 function getHangarListStart() {
     return dataView.getUint32(LOCATION_OF_OFFSET_TO_HANGAR_ENTRIES, true);
+}
+
+function getHangarPointersStart() {
+    return dataView.getUint32(LOCATION_OF_OFFSET_TO_HANGAR_POINTERS, true);
 }
 
 function populatePilotDropdown() {

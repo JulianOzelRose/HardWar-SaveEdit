@@ -4,56 +4,46 @@ it does have the ability to edit basic information like pilot cash, moth health/
 
 ## Instructions
 To use this editor, simply navigate to the deployment page [Here](https://julianozelrose.github.io/HardWar-SaveEdit/). You can begin editing a savegame by clicking 'Open', then selecting your savegame file.
-Note that this editor only supports UIM 6 savegames. Use the tab control to navigate between moths, pilots and hangars. Use the dropdown to select the moth, hangar, or pilot you wish to edit. Click 'Save' when you are done,
+Note that this editor only supports UIM 6 (Steam release or latest patch) savegames. Use the tab control to navigate between moths, pilots and hangars. Use the dropdown to select the moth, hangar, or pilot you wish to edit. Click 'Save' when you are done,
 and the editor will generate a new savegame file based on the modifications made.
 
 ![HardWar-SaveEdit-UI](https://github.com/user-attachments/assets/4231fb54-d1d0-440b-82b3-8f08ad45f905)
 
 
-# Savegame Data Structures
+## Savegame Data Structures
 The data structures of the HardWar savegame are highly dynamic. The pilot entity list start offset is pointed to by the
 pointer stored on `0xDF8`. The hangar entity list start offset is pointed to by the pointer stored on `0xDE0`. The moth
-entity list begins on offset `0xE0C`.
+entity list is pointed to by the pointer stored on `0xDD4`. Pilot entities are `0x37C` in size, hangar entities are
+`0x964` in size, and moth entities are `0x448` in size. Offsets relevant to the savegame entity lists can be found in the
+table below.
 
-| **Entity List**    | **Iterator** | **Start**                |
-| :---               | :---         | :---                     |
-| Moth               | 0x458        | 0xE0C                    |
-| Hangar             | 0x964        | Pointed to by 0xDE0      |
-| Pilot              | 0x37C        | Pointed to by 0xDF8      |
+| **Offset**         | **Type**     | **Description**             |
+| :---               | :---         | :---                        |
+| 0xDD0              | DWORD        | Moth entity count           |
+| 0xDD4              | DWORD        | Moth entity list pointer    |
+| 0xDD8              | DWORD        | Moth pointer list pointer   |
+| 0xDDC              | DWORD        | Hangar entity count         |
+| 0xDE0              | DWORD        | Hangar entity list pointer  |
+| 0xDE4              | DWORD        | Hangar pointer list pointer |
+| 0xDF4              | DWORD        | Pilot entity count          |
+| 0xDF8              | DWORD        | Pilot entity list pointer   |
+| 0xDFC              | DWORD        | Pilot pointer list pointer  |
 
-## Moth Entity List
-The moth entity list begins on offset `0xE0C`. With each moth data structure being `0x37C` in size, this
+### Moth Entity List
+The moth entity list start is pointed to by the pointer stored on `0xDD4`. With each moth data structure being `0x37C` in size, this
 value can be used as an iterator to step through the moth entity list. Stored at the end of the moth data structure is
-a pointer to the dynamic address of the next moth in the entity list.
+a pointer to the dynamic address of the next moth in the entity list. When a moth is destroyed, it is removed from the
+moth entity list. So the moth "array" is more than likely a vector, rather than an array.
 
-When a moth is destroyed, it is removed from the moth entity list. So the moth "array" is more than likely
-a vector, rather than an array. This is also useful to know when the moth entity list has ended, as you can
-break the loop when a moth with impossible values is detected:
-
-```
-// Break loop on first invalid moth type
-if (!MOTH_TYPE[type]) {
-    break;
-}
-
-// Break loop on first invalid moth shield/damage values
-if (shields < 0 || engine_damage < 0 || structure_damage < 0 || cpu_damage < 0 || power_damage < 0 || weapons_damage < 0
-    || shields > MOTH_MAX_SHIELDS || engine_damage > MOTH_MAX_ENGINE_DMG || structure_damage > MOTH_MAX_STRUCTURE_DMG
-    || cpu_damage > MOTH_MAX_CPU_DMG || power_damage > MOTH_MAX_POWER_DMG || weapons_damage > MOTH_MAX_WEAPONS_DMG) {
-    break;
-}
-```
-
-## Hangar Entity List
+### Hangar Entity List
 The hangar entity list is stored after the moth entity list. The location of the hangar entity list start is stored on
 offset `0xDE0`. With the offset of the first hangar in the entity list, it is then possible to step through the hangar
-entity list using the iterator `0x964`. Since there are a fixed number of hangars in the game,
-you can terminate the loop after 251 iterations.
+entity list using the iterator `0x964`.
 
-## Pilot Entity List
+### Pilot Entity List
 After the hangar entity list is the final entity list; pilots. The total pilot entity count is stored on offset `0xDF4`.
 The start of the pilot entity list is pointed to by the vaue stored on offset `0xDF8`. The value stored on offset `0xDFC`
-points to the list of dynamic pilot addresses.
+points to the list of dynamic pilot addresses. When a pilot "dies", they are teleported to the Limbo! hangar.
 
 ## Offset Tables
 ### Moth
@@ -106,4 +96,4 @@ then it will point to the dynamic address of the hangar. The value on offset `0x
 of the faction's headquarters. If the pilot is not a member of a faction, it will be a null pointer.
 
 ## Credits
-- Special thanks to [ShroudedNight](https://github.com/ShroudedNight) for discovering the static offsets for the pilot entity list pointer and pilot count.
+- Special thanks to [ShroudedNight](https://github.com/ShroudedNight) for improving the editor's pilot and moth parsing ability.
