@@ -116,13 +116,11 @@ function getNumMoths() {
 
 function getMothListStart() {
     let mothListStart = dataView.getUint32(LOCATION_OF_OFFSET_TO_MOTH_ENTRIES, true);
-    console.log("Location of moth entries: " + mothListStart.toString(16));
     return mothListStart;
 }
 
 function getMothPointersStart() {
     let mothPointersStart = dataView.getUint32(LOCATION_OF_OFFSET_TO_MOTH_POINTERS, true);
-    console.log("Location of moth pointers: " + mothPointersStart.toString(16));
     return mothPointersStart;
 }
 
