@@ -342,7 +342,7 @@ function populateMothDropdown() {
         const moth = moths[mothPointer];
         const option = document.createElement('option');
         option.value = mothPointer;
-        option.textContent = moth.name;
+        option.textContent = `${moth.type || "Unknown"} (0x${moth.address.toString(16).toUpperCase()})`;
         dropdown.appendChild(option);
     });
 
@@ -461,7 +461,7 @@ function updateHangarBay(elementId, bayAddress) {
         const matchingMoth = Object.values(moths).find(moth => moth.address === bayAddressNumber);
 
         if (matchingMoth) {
-            newElement.textContent = matchingMoth.name;
+            newElement.textContent = matchingMoth.type || "Unknown";
             newElement.classList.remove('unrecognized-location');
             newElement.classList.add('recognized-location');
 
@@ -490,9 +490,11 @@ function updatePilotInfo(pilotName) {
 
         const locationElement = document.getElementById('pilotLocation');
         const locationName = selectedPilot.location_name;
+        const locationMoth = moths[locationName];
+        const locationDisplayName = locationMoth ? (locationMoth.type || "Unknown") : locationName;
         const isRecognizedLocation = !locationName.startsWith("0x");
 
-        locationElement.textContent = locationName;
+        locationElement.textContent = locationDisplayName;
         document.getElementById('pilotStatus').textContent = selectedPilot.status;
 
         const factionElement = document.getElementById('pilotFaction');

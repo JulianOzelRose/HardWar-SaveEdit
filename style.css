@@ -585,7 +585,7 @@ select.form-control option {
 
 .editor-tab .form-control {
     width: 100%;
-    max-width: 200px;
+    max-width: 150px;
 
     box-sizing: border-box;
 
@@ -680,19 +680,34 @@ hr {
 }
 
 .modal-header .close {
-    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+
+    padding: 0;
+    margin: 0 0 0 10px;
 
     color: var(--hw-text);
+    background: transparent;
+    border: 0;
+
+    font-size: 24px;
+    line-height: 1;
 
     opacity: 0.8;
-
     text-shadow: none;
 }
 
 .modal-header .close:hover {
     color: var(--hw-orange);
-
     opacity: 1;
+}
+
+.modal-header .close:focus {
+    outline: none;
 }
 
 .modal-body {
@@ -783,8 +798,8 @@ hr {
 .hw-select {
     position: relative;
 
-    width: 200px;
-    max-width: 200px;
+    width: 240px;
+    max-width: 240px;
 
     margin-right: 10px;
     margin-bottom: 10px;
@@ -830,6 +845,7 @@ hr {
     font: inherit;
 
     text-align: right;
+    white-space: nowrap;
 
     cursor: pointer;
 
@@ -956,6 +972,7 @@ hr {
     background: transparent;
 
     text-align: left;
+    white-space: nowrap;
 
     cursor: pointer;
 
