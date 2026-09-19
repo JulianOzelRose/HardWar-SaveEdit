@@ -261,7 +261,7 @@ function parseHangars() {
         const name = readString(hangarOffset + HANGAR_NAME_OFFSET, true);
         const owner = dataView.getUint32(hangarOffset + HANGAR_OWNER_OFFSET, true);
         const cash_held = dataView.getInt32(hangarOffset + HANGAR_CASH_HELD_OFFSET, true);
-        const address = dataView.getInt32(hangarPointersStart + (4 * index), true);
+        const address = dataView.getUint32(hangarPointersStart + (4 * index), true);
         const values_changed = false;
 
         const bays = HANGAR_BAY_OFFSETS.map(offset => {
@@ -328,6 +328,10 @@ function populatePilotDropdown() {
     dropdown.addEventListener('change', function () {
         updatePilotInfo(dropdown.value);
     });
+
+    if (dropdown.customSelectRebuild) {
+        dropdown.customSelectRebuild();
+    }
 }
 
 function populateMothDropdown() {
@@ -346,6 +350,10 @@ function populateMothDropdown() {
         const selectedMothName = dropdown.value;
         updateMothInfo(selectedMothName);
     });
+
+    if (dropdown.customSelectRebuild) {
+        dropdown.customSelectRebuild();
+    }
 
     dropdown.dispatchEvent(new Event('change'));
 }
@@ -379,6 +387,10 @@ function populateHangarDropdown() {
             }
         }
     });
+
+    if (dropdown.customSelectRebuild) {
+        dropdown.customSelectRebuild();
+    }
 
     dropdown.dispatchEvent(new Event('change'));
 }
@@ -717,6 +729,7 @@ function handlePilotClick(pilotName) {
         showTab('pilots');
         const pilotDropdown = document.getElementById('pilotSelect');
         pilotDropdown.value = cleanedPilotName;
+        pilotDropdown.customSelectSync?.();
         updatePilotInfo(cleanedPilotName);
     }
 }
@@ -969,5 +982,229 @@ function showTab(tabId) {
     }
 }
 
-window.onload = resetFormData;
+function initializeCustomSelect(select) {
+    // Don't initialize the same select twice
+    if (select.dataset.customized === 'true') {
+        return;
+    }
+
+    select.dataset.customized = 'true';
+
+    // Wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'hw-select';
+
+    // Visible selected value
+    const display = document.createElement('button');
+    display.type = 'button';
+    display.className = 'hw-select-display';
+
+    // Dropdown list
+    const dropdown = document.createElement('div');
+    dropdown.className = 'hw-select-dropdown';
+
+    // Insert wrapper immediately before native select
+    select.parentNode.insertBefore(wrapper, select);
+
+    wrapper.appendChild(select);
+    wrapper.appendChild(display);
+    wrapper.appendChild(dropdown);
+
+    // Hide native select visually
+    select.classList.add('hw-native-select');
+
+    function rebuild() {
+        dropdown.innerHTML = '';
+
+        Array.from(select.options).forEach(option => {
+            const item = document.createElement('div');
+
+            item.className = 'hw-select-option';
+            item.textContent = option.textContent;
+            item.dataset.value = option.value;
+
+            if (option.value === select.value) {
+                item.classList.add('selected');
+            }
+
+            item.addEventListener('click', function () {
+                select.value = option.value;
+
+                select.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+
+                sync();
+
+                wrapper.classList.remove('open');
+            });
+
+            dropdown.appendChild(item);
+        });
+
+        sync();
+    }
+
+    function sync() {
+        const selectedOption = select.options[select.selectedIndex];
+
+        display.textContent = selectedOption ? selectedOption.textContent : '';
+
+        dropdown.querySelectorAll('.hw-select-option').forEach(item => {
+            item.classList.toggle(
+                'selected',
+                item.dataset.value === select.value
+            );
+        });
+    }
+
+    display.addEventListener('click', function (event) {
+        event.stopPropagation();
+
+        // Close any other custom select
+        document.querySelectorAll('.hw-select.open').forEach(other => {
+            if (other !== wrapper) {
+                other.classList.remove('open');
+            }
+        });
+
+        wrapper.classList.toggle('open');
+    });
+
+    let searchBuffer = '';
+    let searchTimeout = null;
+
+    display.addEventListener('keydown', function (event) {
+        const options = Array.from(select.options);
+
+        if (!options.length) {
+            return;
+        }
+
+        let index = select.selectedIndex;
+
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+
+                if (index < options.length - 1) {
+                    index++;
+                }
+
+                select.selectedIndex = index;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sync();
+                break;
+
+            case 'ArrowUp':
+                event.preventDefault();
+
+                if (index > 0) {
+                    index--;
+                }
+
+                select.selectedIndex = index;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sync();
+                break;
+
+            case 'Enter':
+            case ' ':
+                event.preventDefault();
+                wrapper.classList.toggle('open');
+                break;
+
+            case 'Escape':
+                event.preventDefault();
+                wrapper.classList.remove('open');
+                break;
+
+            case 'Home':
+                event.preventDefault();
+
+                select.selectedIndex = 0;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sync();
+                break;
+
+            case 'End':
+                event.preventDefault();
+
+                select.selectedIndex = options.length - 1;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sync();
+                break;
+
+            default:
+                // Type-ahead search
+                if (event.key.length === 1 && /^[a-z0-9 ]$/i.test(event.key)) {
+                    event.preventDefault();
+
+                    clearTimeout(searchTimeout);
+
+                    const key = event.key.toLowerCase();
+
+                    // Pressing the same letter repeatedly cycles through matches
+                    if (searchBuffer === key) {
+                        const startIndex = (select.selectedIndex + 1) % options.length;
+
+                        for (let i = 0; i < options.length; i++) {
+                            const index = (startIndex + i) % options.length;
+
+                            if (options[index].textContent.toLowerCase().startsWith(key)) {
+                                select.selectedIndex = index;
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                                sync();
+                                break;
+                            }
+                        }
+                    } else {
+                        searchBuffer += key;
+
+                        const matchIndex = options.findIndex(option => option.textContent.toLowerCase().startsWith(searchBuffer));
+
+                        if (matchIndex !== -1) {
+                            select.selectedIndex = matchIndex;
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                            sync();
+                        }
+                    }
+
+                    searchTimeout = setTimeout(() => {
+                        searchBuffer = '';
+                    }, 700);
+                }
+
+                break;
+        }
+    });
+
+    // Existing change events still work normally
+    select.addEventListener('change', sync);
+
+    // Expose helpers so dynamically populated selects can be rebuilt
+    select.customSelectRebuild = rebuild;
+    select.customSelectSync = sync;
+
+    rebuild();
+}
+
+function initializeCustomSelects() {
+    document.querySelectorAll(
+        '#pilotSelect, #mothSelect, #hangarSelect'
+    ).forEach(initializeCustomSelect);
+}
+
+// Close dropdown when clicking elsewhere
+document.addEventListener('click', function () {
+    document.querySelectorAll('.hw-select.open').forEach(select => {
+        select.classList.remove('open');
+    });
+});
+
+window.onload = function () {
+    resetFormData();
+    initializeCustomSelects();
+};
+
 showTab('pilots');
