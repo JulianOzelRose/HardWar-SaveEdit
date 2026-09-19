@@ -388,8 +388,8 @@ function updateHangarOwner(elementId, ownerAddress) {
 
     if (ownerAddress === "None" || ownerAddress === 0 || ownerAddress == 0x0) {
         element.textContent = "None";
-        element.style.color = 'black';
-        element.style.cursor = 'default';
+        element.classList.remove('recognized-location');
+        element.classList.add('unrecognized-location');
 
         const newElement = element.cloneNode(true);
         element.replaceWith(newElement);
@@ -399,8 +399,8 @@ function updateHangarOwner(elementId, ownerAddress) {
 
         if (ownerPilot) {
             element.textContent = ownerPilot.name;
-            element.style.color = '#007bff';
-            element.style.cursor = 'pointer';
+            element.classList.remove('unrecognized-location');
+            element.classList.add('recognized-location');
 
             element.replaceWith(element.cloneNode(true));
             const newElement = document.getElementById(elementId);
@@ -413,8 +413,8 @@ function updateHangarOwner(elementId, ownerAddress) {
 
             if (ownerHangar) {
                 element.textContent = ownerHangar.name;
-                element.style.color = '#007bff';
-                element.style.cursor = 'pointer';
+                element.classList.remove('unrecognized-location');
+                element.classList.add('recognized-location');
 
                 element.replaceWith(element.cloneNode(true));
                 const newElement = document.getElementById(elementId);
@@ -424,8 +424,8 @@ function updateHangarOwner(elementId, ownerAddress) {
 
             } else {
                 element.textContent = `0x${parseInt(ownerAddress, 16).toString(16).toUpperCase()}`;
-                element.style.color = 'black';
-                element.style.cursor = 'default';
+                element.classList.remove('recognized-location');
+                element.classList.add('unrecognized-location');
 
                 const newElement = element.cloneNode(true);
                 element.replaceWith(newElement);
@@ -443,22 +443,23 @@ function updateHangarBay(elementId, bayAddress) {
 
     if (bayAddress === "Empty" || bayAddressNumber === 0) {
         newElement.textContent = "Empty";
-        newElement.style.color = 'black';
-        newElement.style.cursor = 'default';
+        newElement.classList.remove('recognized-location');
+        newElement.classList.add('unrecognized-location');
     } else {
         const matchingMoth = Object.values(moths).find(moth => moth.address === bayAddressNumber);
 
         if (matchingMoth) {
             newElement.textContent = matchingMoth.name;
-            newElement.style.color = '#007bff';
-            newElement.style.cursor = 'pointer';
+            newElement.classList.remove('unrecognized-location');
+            newElement.classList.add('recognized-location');
+
             newElement.addEventListener('click', function () {
                 handleMothClick(matchingMoth.name);
             });
         } else {
             newElement.textContent = `0x${bayAddressNumber.toString(16).toUpperCase()}`;
-            newElement.style.color = 'black';
-            newElement.style.cursor = 'default';
+            newElement.classList.remove('recognized-location');
+            newElement.classList.add('unrecognized-location');
         }
     }
 }
@@ -495,10 +496,8 @@ function updatePilotInfo(pilotName) {
             for (const hangarName in hangars) {
                 if (hangars[hangarName].address === factionAddress) {
                     newFactionElement.textContent = hangarName;
-                    newFactionElement.style.cursor = 'pointer';
-                    newFactionElement.style.color = '#007bff';
-                    newFactionElement.classList.remove('unrecognized-faction');
-                    newFactionElement.classList.add('recognized-faction');
+                    newFactionElement.classList.remove('unrecognized-location');
+                    newFactionElement.classList.add('recognized-location');
 
                     newFactionElement.addEventListener('click', function () {
                         handleLocationClick(hangarName);
@@ -511,24 +510,19 @@ function updatePilotInfo(pilotName) {
 
             if (!isRecognizedFaction) {
                 newFactionElement.textContent = `0x${factionAddress.toString(16).toUpperCase()}`;
-                newFactionElement.classList.add('unrecognized-faction');
-                newFactionElement.classList.remove('recognized-faction');
-                newFactionElement.style.cursor = 'default';
-                newFactionElement.style.color = 'black';
+                newFactionElement.classList.remove('recognized-location');
+                newFactionElement.classList.add('unrecognized-location');
             }
 
         } else {
             newFactionElement.textContent = "None";
-            newFactionElement.classList.add('unrecognized-faction');
-            newFactionElement.classList.remove('recognized-faction');
-            newFactionElement.style.cursor = 'default';
-            newFactionElement.style.color = 'black';
+            newFactionElement.classList.remove('recognized-location');
+            newFactionElement.classList.add('unrecognized-location');
         }
 
         if (isRecognizedLocation) {
             locationElement.classList.remove('unrecognized-location');
-            locationElement.style.cursor = 'pointer';
-            locationElement.style.color = '#007bff';
+            locationElement.classList.add('recognized-location');
 
             locationElement.replaceWith(locationElement.cloneNode(true));
             const newLocationElement = document.getElementById('pilotLocation');
@@ -536,8 +530,8 @@ function updatePilotInfo(pilotName) {
                 handleLocationClick(locationName);
             });
         } else {
+            locationElement.classList.remove('recognized-location');
             locationElement.classList.add('unrecognized-location');
-            locationElement.style.cursor = 'default';
 
             const newLocationElement = locationElement.cloneNode(true);
             locationElement.replaceWith(newLocationElement);
@@ -566,7 +560,6 @@ function updateMothInfo(mothName) {
         mothTypeElement.textContent = selectedMoth.type || "Unknown";
         mothTypeElement.classList.remove('text-primary');
         mothTypeElement.classList.add('moth-type');
-        mothTypeElement.style.color = "black !important";
 
         shieldsInput.oninput = function () {
             selectedMoth.shields = parseInt(shieldsInput.value, 10);
@@ -620,8 +613,7 @@ function updateMothInfo(mothName) {
 
         if (isRecognizedPilot) {
             pilotElement.classList.remove('unrecognized-location');
-            pilotElement.style.cursor = 'pointer';
-            pilotElement.style.color = '#007bff';
+            pilotElement.classList.add('recognized-location');
 
             pilotElement.replaceWith(pilotElement.cloneNode(true));
             const newPilotElement = document.getElementById('mothPilot');
@@ -629,9 +621,8 @@ function updateMothInfo(mothName) {
                 handlePilotClick(pilotName);
             });
         } else {
+            pilotElement.classList.remove('recognized-location');
             pilotElement.classList.add('unrecognized-location');
-            pilotElement.style.cursor = 'default';
-            pilotElement.style.color = 'black';
 
             const newPilotElement = pilotElement.cloneNode(true);
             pilotElement.replaceWith(newPilotElement);
@@ -660,16 +651,14 @@ function updateMothInfo(mothName) {
 
             if (isRecognizedPassenger) {
                 passengerElement.classList.remove('unrecognized-location');
-                passengerElement.style.cursor = 'pointer';
-                passengerElement.style.color = '#007bff';
+                passengerElement.classList.add('recognized-location');
 
                 passengerElement.onclick = function () {
                     handlePilotClick(passengerName);
                 };
             } else {
+                passengerElement.classList.remove('recognized-location');
                 passengerElement.classList.add('unrecognized-location');
-                passengerElement.style.cursor = 'default';
-                passengerElement.style.color = 'black';
 
                 // Remove click event if unrecognized
                 passengerElement.onclick = null;
@@ -700,8 +689,7 @@ function updateMothInfo(mothName) {
 
         if (isRecognizedHangar) {
             hangarElement.classList.remove('unrecognized-location');
-            hangarElement.style.cursor = 'pointer';
-            hangarElement.style.color = '#007bff';
+            hangarElement.classList.add('recognized-location');
 
             hangarElement.replaceWith(hangarElement.cloneNode(true));
             const newHangarElement = document.getElementById('mothHangar');
@@ -710,9 +698,8 @@ function updateMothInfo(mothName) {
                 handleLocationClick(hangarName);
             });
         } else {
+            hangarElement.classList.remove('recognized-location');
             hangarElement.classList.add('unrecognized-location');
-            hangarElement.style.cursor = 'default';
-            hangarElement.style.color = 'black';
 
             hangarElement.replaceWith(hangarElement.cloneNode(true));
             const newHangarElement = document.getElementById('mothHangar');
