@@ -1,94 +1,204 @@
-.card {
-    border-radius: 8px;
-    box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
+/* ============================================================
+   HARDWAR SAVEGAME EDITOR
+   HardWar / Access Computer inspired theme
+   ============================================================ */
+
+:root {
+    --hw-black:        #0b0d0a;
+    --hw-bg:           #141610;
+    --hw-bg-light:     #1b1e17;
+    --hw-panel:        #20231b;
+    --hw-panel-light:  #292c22;
+
+    --hw-text:         #c7c5a1;
+    --hw-text-bright:  #dedbb5;
+    --hw-text-dim:     #85856c;
+
+    --hw-line:         #65664d;
+    --hw-line-dim:     #3d4032;
+    --hw-line-bright:  #8a8967;
+
+    --hw-orange:       #e47818;
+    --hw-orange-dark:  #81400d;
+
+    --hw-blue:         #263846;
+    --hw-red:          #8c2e20;
+
+    --hw-link:         #c6bd72;
 }
 
+
+/* ============================================================
+   PAGE
+   ============================================================ */
+
+html,
+body {
+    min-height: 100%;
+}
+
+body {
+    background:
+        linear-gradient(rgba(20, 22, 16, 0.94), rgba(20, 22, 16, 0.94)),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 3px,
+            rgba(255, 255, 255, 0.018) 3px,
+            rgba(255, 255, 255, 0.018) 4px
+        );
+
+    background-color: var(--hw-bg);
+
+    color: var(--hw-text);
+    font-family:
+        "Trebuchet MS",
+        "Arial Narrow",
+        Arial,
+        sans-serif;
+
+    letter-spacing: 0.02em;
+}
+
+
+/* subtle CRT / monitor texture */
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+
+    pointer-events: none;
+    z-index: 9999;
+
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.00),
+        rgba(0, 0, 0, 0.00) 2px,
+        rgba(0, 0, 0, 0.045) 3px
+    );
+
+    opacity: 0.4;
+}
+
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+
 .navbar-custom {
-    background-color: #f8f9fa;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid #ddd;
+    min-height: 62px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #35362e 0%,
+            #292b24 45%,
+            #1c1e18 100%
+        );
+
+    border: 0;
+    border-bottom: 2px solid var(--hw-line);
+    box-shadow:
+        0 2px 0 #090a08,
+        0 5px 15px rgba(0, 0, 0, 0.65);
+}
+
+.navbar-custom::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3px;
+    height: 1px;
+
+    background: var(--hw-line-dim);
 }
 
 .navbar-brand {
+    margin: 0;
+
+    color: var(--hw-text-bright) !important;
+
+    font-size: 1.35rem;
     font-weight: bold;
-    font-size: 1.5rem;
+
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+
+    text-shadow:
+        1px 1px 0 #000,
+        0 0 5px rgba(199, 197, 161, 0.15);
 }
 
 .navbar-buttons {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
     margin-left: auto;
 }
 
-.navbar-btn {
-    margin-right: 10px;
-}
 
-.container {
-    padding-top: 80px;
-}
-
-.input-group-sm>.form-control,
-.input-group-sm>.input-group-append>.btn,
-.input-group-sm>.input-group-prepend>.btn {
-    padding: 5px 10px;
-    font-size: 0.875rem;
-    border-radius: 4px;
-}
-
-.form-control {
-    text-align: right !important;
-    text-align-last: right;
-    direction: ltr;
-}
-
-.editor-tab .form-control {
-    width: 100%;
-    max-width: 200px;
-    box-sizing: border-box;
-    margin-bottom: 10px;
-}
-
-.editor-tab .form-group {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.editor-tab label {
-    flex: 1;
-    margin-right: 10px;
-}
-
-.editor-tab input {
-    flex: 2;
-}
-
-.nav-tabs .nav-link.active {
-    border-color: #dee2e6 #dee2e6 #fff;
-    background-color: #f8f9fa;
-    border-radius: 0;
-}
+/* ============================================================
+   HARDWAR BUTTONS
+   ============================================================ */
 
 .open-btn,
 .save-btn,
 .about-btn,
 .ok-btn {
+    position: relative;
+
     width: 100px;
-    background-color: #e0e0e0;
-    color: black;
-    border: 1px solid #ccc;
-    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+    min-height: 34px;
+
+    margin-right: 8px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #292c27 0%,
+            #171a17 100%
+        );
+
+    color: var(--hw-text) !important;
+
+    border: 1px solid var(--hw-line);
+    border-radius: 2px;
+
+    box-shadow:
+        inset 0 0 0 1px #11130f,
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        1px 1px 0 #080908;
+
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+
+    transition:
+        color 0.1s,
+        border-color 0.1s,
+        background-color 0.1s,
+        box-shadow 0.1s;
 }
 
 .open-btn:hover,
 .save-btn:hover,
 .about-btn:hover,
 .ok-btn:hover {
-    background-color: #d0d0d0;
-    color: black;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background:
+        linear-gradient(
+            180deg,
+            #382b1d 0%,
+            #1e1913 100%
+        );
+
+    color: #f2c080 !important;
+
+    border-color: var(--hw-orange);
+
+    box-shadow:
+        inset 0 0 0 1px var(--hw-orange-dark),
+        0 0 6px rgba(228, 120, 24, 0.25);
 }
 
 .open-btn:focus,
@@ -96,150 +206,910 @@
 .about-btn:focus,
 .ok-btn:focus {
     outline: none;
-    box-shadow: 0 0 4px #665;
+
+    color: #f2c080 !important;
+    border-color: var(--hw-orange);
+
+    box-shadow:
+        inset 0 0 0 1px var(--hw-orange-dark),
+        0 0 7px rgba(228, 120, 24, 0.35);
 }
+
+.open-btn:active,
+.save-btn:active,
+.about-btn:active,
+.ok-btn:active {
+    background: #11130f !important;
+
+    transform: translate(1px, 1px);
+
+    box-shadow:
+        inset 0 0 5px #000 !important;
+}
+
+
+/* ============================================================
+   MAIN CONTAINER
+   ============================================================ */
+
+.container {
+    padding-top: 80px;
+}
+
+
+/* ============================================================
+   EDITOR / COMPUTER PANEL
+   ============================================================ */
+
+.card {
+    position: relative;
+
+    background: var(--hw-panel);
+
+    border: 2px solid var(--hw-line);
+    border-radius: 2px;
+
+    box-shadow:
+        0 0 0 2px #0b0d0a,
+        0 0 0 3px #36382c,
+        8px 10px 25px rgba(0, 0, 0, 0.65),
+        inset 0 0 25px rgba(0, 0, 0, 0.25);
+}
+
+
+/* little mechanical corner marks */
+
+.card::before,
+.card::after {
+    content: "";
+
+    position: absolute;
+
+    width: 10px;
+    height: 10px;
+
+    border: 1px solid var(--hw-line-bright);
+
+    background: #11130f;
+
+    z-index: 5;
+}
+
+.card::before {
+    top: 5px;
+    left: 5px;
+}
+
+.card::after {
+    top: 5px;
+    right: 5px;
+}
+
+
+/* ============================================================
+   SAVEGAME HEADER
+   ============================================================ */
+
+.card-header {
+    position: relative;
+
+    background:
+        linear-gradient(
+            180deg,
+            #2b2e25 0%,
+            #1b1e18 100%
+        );
+
+    border-bottom: 1px solid var(--hw-line) !important;
+
+    color: var(--hw-text-bright);
+
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+
+    box-shadow:
+        inset 0 -1px 0 #0b0d0a;
+}
+
+#savegame {
+    color: var(--hw-text-bright) !important;
+
+    font-weight: normal !important;
+
+    text-shadow:
+        1px 1px 0 #000,
+        0 0 4px rgba(199, 197, 161, 0.15);
+}
+
+
+/* Prefix loaded save with terminal-style indicator */
+
+#savegame:not(:empty)::before {
+    content: "ONLINE // ";
+    color: var(--hw-orange);
+}
+
+
+/* ============================================================
+   CARD BODY
+   ============================================================ */
+
+.card-body {
+    background:
+        linear-gradient(
+            rgba(24, 27, 20, 0.94),
+            rgba(20, 23, 17, 0.94)
+        );
+
+    padding: 20px;
+}
+
+
+/* ============================================================
+   TABS
+   ============================================================ */
+
+.nav-tabs {
+    border-bottom: 1px solid var(--hw-line);
+}
+
+#editorTabs .nav-link {
+    cursor: pointer;
+
+    color: var(--hw-text-dim);
+
+    background: #151712;
+
+    border:
+        1px solid var(--hw-line-dim);
+
+    border-bottom: 0;
+
+    border-radius: 0;
+
+    margin-right: 3px;
+
+    padding: 8px 18px;
+
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+
+    transition:
+        color 0.1s,
+        border-color 0.1s,
+        background-color 0.1s;
+}
+
+#editorTabs .nav-link:hover {
+    color: var(--hw-text-bright);
+
+    border-color: var(--hw-line);
+
+    background: #20231b;
+}
+
+.nav-tabs .nav-link.active,
+#editorTabs .nav-link.active {
+    color: #f1b46c;
+
+    background:
+        linear-gradient(
+            180deg,
+            #31281d 0%,
+            #202019 100%
+        );
+
+    border-color:
+        var(--hw-orange)
+        var(--hw-orange)
+        var(--hw-panel);
+
+    border-radius: 0;
+
+    box-shadow:
+        inset 0 2px 0 rgba(228, 120, 24, 0.15);
+
+    text-shadow:
+        0 0 5px rgba(228, 120, 24, 0.25);
+}
+
+
+/* ============================================================
+   FORM LAYOUT
+   ============================================================ */
 
 .form-group {
     margin-bottom: 20px;
 }
 
-.flex-group {
+.editor-tab .form-group {
     display: flex;
+
     justify-content: space-between;
     align-items: center;
 }
 
-.flex-group label {
+.editor-tab label {
+    flex: 1;
+
     margin-right: 10px;
-}
 
-.flex-group select {
-    flex-grow: 1;
-    direction: rtl;
-    text-align: left;
-}
-
-fieldset {
-    border: 1px solid #ddd;
-    padding: 15px;
-    margin-bottom: 5px;
-    border-radius: 8px;
-}
-
-legend {
-    font-weight: bold;
-    color: #333;
+    color: var(--hw-text);
 }
 
 .form-group label {
     font-weight: 400;
+
+    text-transform: uppercase;
+
+    font-size: 0.86rem;
+    letter-spacing: 0.05em;
+}
+
+.editor-tab input {
+    flex: 2;
+}
+
+
+/* ============================================================
+   FIELDSETS / DATA PANELS
+   ============================================================ */
+
+fieldset,
+fieldset.border {
+    position: relative;
+
+    padding: 18px !important;
+
+    margin-bottom: 5px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(39, 43, 33, 0.92),
+            rgba(22, 25, 19, 0.96)
+        );
+
+    border: 1px solid var(--hw-line) !important;
+    border-radius: 2px !important;
+
+    box-shadow:
+        inset 0 0 0 1px #10120e,
+        inset 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+fieldset::before {
+    content: "";
+
+    position: absolute;
+
+    top: 5px;
+    left: 5px;
+
+    width: 4px;
+    height: 4px;
+
+    background: var(--hw-orange);
+
+    box-shadow:
+        0 0 3px rgba(228, 120, 24, 0.7);
+}
+
+legend {
+    color: var(--hw-text-bright);
+    font-weight: normal;
+}
+
+
+/* ============================================================
+   DISPLAY VALUES
+   ============================================================ */
+
+.flex-group p {
+    margin-bottom: 0;
+
+    color: var(--hw-text-bright);
+
+    text-align: right;
+
+    letter-spacing: 0.03em;
 }
 
 .text-primary {
-    color: black;
+    color: var(--hw-link) !important;
 }
 
-#editorTabs .nav-link {
+
+/* ============================================================
+   INPUTS + SELECTS
+   ============================================================ */
+
+.form-control {
+    height: 34px;
+
+    color: var(--hw-text-bright);
+
+    background:
+        linear-gradient(
+            180deg,
+            #0b0d0a 0%,
+            #11140f 100%
+        );
+
+    border: 1px solid var(--hw-line);
+    border-radius: 1px;
+
+    text-align: right !important;
+    text-align-last: right;
+
+    direction: ltr;
+
+    box-shadow:
+        inset 1px 1px 5px rgba(0, 0, 0, 0.85);
+
+    transition:
+        border-color 0.1s,
+        box-shadow 0.1s;
+}
+
+.form-control:hover {
+    border-color: var(--hw-line-bright);
+}
+
+.form-control:focus {
+    color: #f1b46c;
+
+    background-color: #0b0d0a;
+
+    border-color: var(--hw-orange);
+
+    outline: 0;
+
+    box-shadow:
+        inset 1px 1px 5px rgba(0, 0, 0, 0.9),
+        0 0 5px rgba(228, 120, 24, 0.25);
+}
+
+select.form-control {
+    color: var(--hw-text-bright);
+
+    background-color: #0e100c;
+
     cursor: pointer;
 }
 
-#pilotLocation.unrecognized-location {
-    color: black !important;
-    cursor: default;
+select.form-control option {
+    color: var(--hw-text);
+    background: #151712;
 }
 
-#pilotFaction.unrecognized-faction {
-    color: black !important;
-    cursor: default;
+.editor-tab .form-control {
+    width: 100%;
+    max-width: 150px;
+
+    box-sizing: border-box;
+
+    margin-bottom: 10px;
 }
 
-#pilotFaction.recognized-faction {
-    color: #007bff !important;
+
+/* ============================================================
+   DIVIDERS
+   ============================================================ */
+
+hr {
+    border: 0;
+
+    border-top: 1px solid #090a08;
+    border-bottom: 1px solid var(--hw-line-dim);
+}
+
+
+/* ============================================================
+   ENTITY REFERENCES
+   ============================================================ */
+
+.recognized-location {
+    color: var(--hw-link) !important;
     cursor: pointer;
 }
 
-#mothPilot.unrecognized-location {
-    color: black !important;
+.recognized-location:hover {
+    color: var(--hw-orange) !important;
+}
+
+.unrecognized-location {
+    color: var(--hw-text-dim) !important;
     cursor: default;
 }
 
-#mothPassenger.unrecognized-location {
-    color: black !important;
+.moth-type {
+    color: var(--hw-text-bright) !important;
     cursor: default;
 }
 
-#mothElement.moth-type {
-    color: black !important;
-    cursor: default;
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+
+.modal-backdrop.show {
+    opacity: 0.78;
 }
 
-#mothHangar.unrecognized-location {
-    color: black !important;
-    cursor: default;
+.modal-content {
+    color: var(--hw-text);
+
+    background: var(--hw-panel);
+
+    border: 2px solid var(--hw-line);
+    border-radius: 2px;
+
+    box-shadow:
+        0 0 0 2px #090a08,
+        0 0 0 3px #35382b,
+        0 10px 35px rgba(0, 0, 0, 0.8);
 }
 
 .modal-header.custom-header {
-    background-color: #f8f9fa;
     height: 50px;
+
     padding-left: 15px;
-    padding-right: 30px;
-    border-bottom: 1px solid #dee2e6;
+    padding-right: 20px;
+
+    color: var(--hw-text-bright);
+
+    background:
+        linear-gradient(
+            180deg,
+            #303229 0%,
+            #1b1e18 100%
+        );
+
+    border-bottom: 1px solid var(--hw-line);
+
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.modal-header .close {
-    margin-left: 10px;
+.modal-title {
+    text-transform: uppercase;
+
+    letter-spacing: 0.1em;
 }
+
+.modal-header .close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 24px;
+    height: 24px;
+
+    padding: 0;
+    margin: 0 0 0 10px;
+
+    color: var(--hw-text);
+    background: transparent;
+    border: 0;
+
+    font-size: 24px;
+    line-height: 1;
+
+    opacity: 0.8;
+    text-shadow: none;
+}
+
+.modal-header .close:hover {
+    color: var(--hw-orange);
+    opacity: 1;
+}
+
+.modal-header .close:focus {
+    outline: none;
+}
+
+.modal-body {
+    background:
+        linear-gradient(
+            135deg,
+            #20231b,
+            #171914
+        );
+
+    line-height: 1.6;
+}
+
+.modal-body a {
+    color: var(--hw-link);
+}
+
+.modal-body a:hover {
+    color: var(--hw-orange);
+}
+
+.modal-footer {
+    background: #171914;
+
+    border-top: 1px solid var(--hw-line-dim);
+}
+
+
+/* ============================================================
+   SNACKBAR
+   ============================================================ */
 
 #snackbar {
     visibility: hidden;
+
     min-width: 250px;
-    background-color: #f8f9fa;
-    color: #212529;
-    text-align: center;
-    border-radius: 0.25rem;
+
     padding: 0.75rem 1.25rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+
     position: fixed;
     z-index: 1050;
+
     top: 100px;
     right: 30px;
+
+    display: inline-block;
+
+    color: var(--hw-text-bright);
+
+    background:
+        linear-gradient(
+            180deg,
+            #272a21,
+            #151712
+        );
+
+    border: 1px solid var(--hw-orange);
+    border-radius: 1px;
+
+    box-shadow:
+        inset 0 0 0 1px #11130e,
+        0 5px 15px rgba(0, 0, 0, 0.65),
+        0 0 6px rgba(228, 120, 24, 0.2);
+
+    text-align: center;
+
     font-size: 1rem;
     font-weight: 500;
-    border: 1px solid #d1d1d1;
-    display: inline-block;
+
+    letter-spacing: 0.04em;
+}
+
+#snackbar::before {
+    content: "● ";
+
+    color: var(--hw-orange);
 }
 
 #snackbar.show {
     visibility: visible;
 }
 
+
+/* ============================================================
+   HARDWAR CUSTOM SELECT
+   ============================================================ */
+
+.hw-select {
+    position: relative;
+
+    width: 240px;
+    max-width: 240px;
+
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+
+
+/* Keep native select as state, but don't display it */
+
+.hw-native-select {
+    display: none !important;
+}
+
+
+/* Closed dropdown */
+
+.hw-select-display {
+    position: relative;
+
+    width: 100%;
+    height: 34px;
+
+    padding:
+        5px
+        28px
+        5px
+        10px;
+
+    color: var(--hw-text-bright);
+
+    background:
+        linear-gradient(
+            180deg,
+            #0b0d0a 0%,
+            #11140f 100%
+        );
+
+    border: 1px solid var(--hw-line);
+    border-radius: 1px;
+
+    box-shadow:
+        inset 1px 1px 5px rgba(0, 0, 0, 0.85);
+
+    font: inherit;
+
+    text-align: right;
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    outline: none;
+
+    transition:
+        border-color 0.1s,
+        color 0.1s,
+        box-shadow 0.1s;
+}
+
+
+/* Arrow */
+
+.hw-select-display::after {
+    content: "";
+
+    position: absolute;
+
+    top: 50%;
+    right: 9px;
+
+    width: 6px;
+    height: 6px;
+
+    border-right: 1px solid var(--hw-text);
+    border-bottom: 1px solid var(--hw-text);
+
+    transform:
+        translateY(-65%)
+        rotate(45deg);
+
+    transition:
+        transform 0.1s,
+        border-color 0.1s;
+}
+
+
+/* Hover */
+
+.hw-select-display:hover {
+    color: #f1b46c;
+
+    border-color: var(--hw-orange);
+
+    box-shadow:
+        inset 1px 1px 5px rgba(0, 0, 0, 0.9),
+        0 0 5px rgba(228, 120, 24, 0.20);
+}
+
+.hw-select-display:hover::after {
+    border-color: var(--hw-orange);
+}
+
+
+/* Open state */
+
+.hw-select.open .hw-select-display {
+    color: #f1b46c;
+
+    border-color: var(--hw-orange);
+
+    box-shadow:
+        inset 1px 1px 5px rgba(0, 0, 0, 0.9),
+        0 0 5px rgba(228, 120, 24, 0.25);
+}
+
+.hw-select.open .hw-select-display::after {
+    border-color: var(--hw-orange);
+
+    transform:
+        translateY(-30%)
+        rotate(225deg);
+}
+
+
+/* Dropdown panel */
+
+.hw-select-dropdown {
+    display: none;
+
+    position: absolute;
+
+    top: calc(100% + 2px);
+    left: 0;
+
+    width: 100%;
+    max-height: 400px;
+
+    overflow-y: auto;
+
+    z-index: 2000;
+
+    padding: 3px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #151811 0%,
+            #0d0f0b 100%
+        );
+
+    border: 1px solid var(--hw-line);
+
+    box-shadow:
+        4px 5px 12px rgba(0, 0, 0, 0.75),
+        inset 0 0 0 1px #090a08;
+}
+
+.hw-select.open .hw-select-dropdown {
+    display: block;
+}
+
+
+/* Individual option */
+
+.hw-select-option {
+    position: relative;
+
+    padding: 7px 9px;
+
+    color: var(--hw-text);
+
+    background: transparent;
+
+    text-align: left;
+    white-space: nowrap;
+
+    cursor: pointer;
+
+    transition:
+        color 0.08s,
+        background-color 0.08s;
+}
+
+
+/* Hover */
+
+.hw-select-option:hover {
+    color: #f1b46c;
+
+    background:
+        rgba(228, 120, 24, 0.09);
+}
+
+
+/* Currently selected */
+
+.hw-select-option.selected {
+    color: var(--hw-orange);
+
+    background:
+        rgba(228, 120, 24, 0.06);
+}
+
+
+/* Little HardWar indicator */
+
+.hw-select-option.selected::before {
+    content: "";
+
+    position: absolute;
+
+    left: 3px;
+    top: 50%;
+
+    width: 3px;
+    height: 3px;
+
+    transform: translateY(-50%);
+
+    background: var(--hw-orange);
+
+    box-shadow:
+        0 0 3px rgba(228, 120, 24, 0.7);
+}
+
+
+/* Scrollbar - Firefox */
+
+.hw-select-dropdown {
+    scrollbar-width: thin;
+    scrollbar-color:
+        var(--hw-line)
+        #0b0d0a;
+}
+
+
+/* Scrollbar - Chromium/WebKit */
+
+.hw-select-dropdown::-webkit-scrollbar {
+    width: 8px;
+}
+
+.hw-select-dropdown::-webkit-scrollbar-track {
+    background: #0b0d0a;
+}
+
+.hw-select-dropdown::-webkit-scrollbar-thumb {
+    background: var(--hw-line);
+
+    border: 2px solid #0b0d0a;
+}
+
+.hw-select-dropdown::-webkit-scrollbar-thumb:hover {
+    background: var(--hw-orange);
+}
+
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+
 @keyframes fadein {
-    from { top: 0; opacity: 0; }
-    to { top: 100px; opacity: 1; }
+    from {
+        top: 0;
+        opacity: 0;
+    }
+
+    to {
+        top: 100px;
+        opacity: 1;
+    }
 }
 
 @keyframes fadeout {
-    from { top: 100px; opacity: 1; }
-    to { top: 0; opacity: 0; }
-}
-
-/* input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none !important;
-    margin: 0 !important;
-}
-
-input[type="number"] {
-    -moz-appearance: textfield !important;
-    appearance: none !important;
-}
-
-@-moz-document url-prefix() {
-    input[type="number"] {
-      -moz-appearance: none !important;
-      appearance: none !important;
+    from {
+        top: 100px;
+        opacity: 1;
     }
-} */
+
+    to {
+        top: 0;
+        opacity: 0;
+    }
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    .navbar-brand {
+        font-size: 1rem;
+    }
+
+    .navbar-buttons {
+        gap: 3px;
+    }
+
+    .open-btn,
+    .save-btn,
+    .about-btn {
+        width: auto;
+
+        padding-left: 12px;
+        padding-right: 12px;
+
+        margin-right: 2px;
+    }
+
+    .card-body {
+        padding: 14px;
+    }
+}

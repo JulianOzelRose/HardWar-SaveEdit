@@ -261,7 +261,7 @@ function parseHangars() {
         const name = readString(hangarOffset + HANGAR_NAME_OFFSET, true);
         const owner = dataView.getUint32(hangarOffset + HANGAR_OWNER_OFFSET, true);
         const cash_held = dataView.getInt32(hangarOffset + HANGAR_CASH_HELD_OFFSET, true);
-        const address = dataView.getInt32(hangarPointersStart + (4 * index), true);
+        const address = dataView.getUint32(hangarPointersStart + (4 * index), true);
         const values_changed = false;
 
         const bays = HANGAR_BAY_OFFSETS.map(offset => {
@@ -328,6 +328,10 @@ function populatePilotDropdown() {
     dropdown.addEventListener('change', function () {
         updatePilotInfo(dropdown.value);
     });
+
+    if (dropdown.customSelectRebuild) {
+        dropdown.customSelectRebuild();
+    }
 }
 
 function populateMothDropdown() {
@@ -338,7 +342,7 @@ function populateMothDropdown() {
         const moth = moths[mothPointer];
         const option = document.createElement('option');
         option.value = mothPointer;
-        option.textContent = moth.name;
+        option.textContent = `${moth.type || "Unknown"} (0x${moth.address.toString(16).toUpperCase()})`;
         dropdown.appendChild(option);
     });
 
@@ -346,6 +350,10 @@ function populateMothDropdown() {
         const selectedMothName = dropdown.value;
         updateMothInfo(selectedMothName);
     });
+
+    if (dropdown.customSelectRebuild) {
+        dropdown.customSelectRebuild();
+    }
 
     dropdown.dispatchEvent(new Event('change'));
 }
@@ -380,6 +388,10 @@ function populateHangarDropdown() {
         }
     });
 
+    if (dropdown.customSelectRebuild) {
+        dropdown.customSelectRebuild();
+    }
+
     dropdown.dispatchEvent(new Event('change'));
 }
 
@@ -388,8 +400,8 @@ function updateHangarOwner(elementId, ownerAddress) {
 
     if (ownerAddress === "None" || ownerAddress === 0 || ownerAddress == 0x0) {
         element.textContent = "None";
-        element.style.color = 'black';
-        element.style.cursor = 'default';
+        element.classList.remove('recognized-location');
+        element.classList.add('unrecognized-location');
 
         const newElement = element.cloneNode(true);
         element.replaceWith(newElement);
@@ -399,8 +411,8 @@ function updateHangarOwner(elementId, ownerAddress) {
 
         if (ownerPilot) {
             element.textContent = ownerPilot.name;
-            element.style.color = '#007bff';
-            element.style.cursor = 'pointer';
+            element.classList.remove('unrecognized-location');
+            element.classList.add('recognized-location');
 
             element.replaceWith(element.cloneNode(true));
             const newElement = document.getElementById(elementId);
@@ -413,8 +425,8 @@ function updateHangarOwner(elementId, ownerAddress) {
 
             if (ownerHangar) {
                 element.textContent = ownerHangar.name;
-                element.style.color = '#007bff';
-                element.style.cursor = 'pointer';
+                element.classList.remove('unrecognized-location');
+                element.classList.add('recognized-location');
 
                 element.replaceWith(element.cloneNode(true));
                 const newElement = document.getElementById(elementId);
@@ -424,8 +436,8 @@ function updateHangarOwner(elementId, ownerAddress) {
 
             } else {
                 element.textContent = `0x${parseInt(ownerAddress, 16).toString(16).toUpperCase()}`;
-                element.style.color = 'black';
-                element.style.cursor = 'default';
+                element.classList.remove('recognized-location');
+                element.classList.add('unrecognized-location');
 
                 const newElement = element.cloneNode(true);
                 element.replaceWith(newElement);
@@ -443,22 +455,23 @@ function updateHangarBay(elementId, bayAddress) {
 
     if (bayAddress === "Empty" || bayAddressNumber === 0) {
         newElement.textContent = "Empty";
-        newElement.style.color = 'black';
-        newElement.style.cursor = 'default';
+        newElement.classList.remove('recognized-location');
+        newElement.classList.add('unrecognized-location');
     } else {
         const matchingMoth = Object.values(moths).find(moth => moth.address === bayAddressNumber);
 
         if (matchingMoth) {
-            newElement.textContent = matchingMoth.name;
-            newElement.style.color = '#007bff';
-            newElement.style.cursor = 'pointer';
+            newElement.textContent = matchingMoth.type || "Unknown";
+            newElement.classList.remove('unrecognized-location');
+            newElement.classList.add('recognized-location');
+
             newElement.addEventListener('click', function () {
                 handleMothClick(matchingMoth.name);
             });
         } else {
             newElement.textContent = `0x${bayAddressNumber.toString(16).toUpperCase()}`;
-            newElement.style.color = 'black';
-            newElement.style.cursor = 'default';
+            newElement.classList.remove('recognized-location');
+            newElement.classList.add('unrecognized-location');
         }
     }
 }
@@ -477,9 +490,11 @@ function updatePilotInfo(pilotName) {
 
         const locationElement = document.getElementById('pilotLocation');
         const locationName = selectedPilot.location_name;
+        const locationMoth = moths[locationName];
+        const locationDisplayName = locationMoth ? (locationMoth.type || "Unknown") : locationName;
         const isRecognizedLocation = !locationName.startsWith("0x");
 
-        locationElement.textContent = locationName;
+        locationElement.textContent = locationDisplayName;
         document.getElementById('pilotStatus').textContent = selectedPilot.status;
 
         const factionElement = document.getElementById('pilotFaction');
@@ -495,10 +510,8 @@ function updatePilotInfo(pilotName) {
             for (const hangarName in hangars) {
                 if (hangars[hangarName].address === factionAddress) {
                     newFactionElement.textContent = hangarName;
-                    newFactionElement.style.cursor = 'pointer';
-                    newFactionElement.style.color = '#007bff';
-                    newFactionElement.classList.remove('unrecognized-faction');
-                    newFactionElement.classList.add('recognized-faction');
+                    newFactionElement.classList.remove('unrecognized-location');
+                    newFactionElement.classList.add('recognized-location');
 
                     newFactionElement.addEventListener('click', function () {
                         handleLocationClick(hangarName);
@@ -511,24 +524,19 @@ function updatePilotInfo(pilotName) {
 
             if (!isRecognizedFaction) {
                 newFactionElement.textContent = `0x${factionAddress.toString(16).toUpperCase()}`;
-                newFactionElement.classList.add('unrecognized-faction');
-                newFactionElement.classList.remove('recognized-faction');
-                newFactionElement.style.cursor = 'default';
-                newFactionElement.style.color = 'black';
+                newFactionElement.classList.remove('recognized-location');
+                newFactionElement.classList.add('unrecognized-location');
             }
 
         } else {
             newFactionElement.textContent = "None";
-            newFactionElement.classList.add('unrecognized-faction');
-            newFactionElement.classList.remove('recognized-faction');
-            newFactionElement.style.cursor = 'default';
-            newFactionElement.style.color = 'black';
+            newFactionElement.classList.remove('recognized-location');
+            newFactionElement.classList.add('unrecognized-location');
         }
 
         if (isRecognizedLocation) {
             locationElement.classList.remove('unrecognized-location');
-            locationElement.style.cursor = 'pointer';
-            locationElement.style.color = '#007bff';
+            locationElement.classList.add('recognized-location');
 
             locationElement.replaceWith(locationElement.cloneNode(true));
             const newLocationElement = document.getElementById('pilotLocation');
@@ -536,8 +544,8 @@ function updatePilotInfo(pilotName) {
                 handleLocationClick(locationName);
             });
         } else {
+            locationElement.classList.remove('recognized-location');
             locationElement.classList.add('unrecognized-location');
-            locationElement.style.cursor = 'default';
 
             const newLocationElement = locationElement.cloneNode(true);
             locationElement.replaceWith(newLocationElement);
@@ -566,7 +574,6 @@ function updateMothInfo(mothName) {
         mothTypeElement.textContent = selectedMoth.type || "Unknown";
         mothTypeElement.classList.remove('text-primary');
         mothTypeElement.classList.add('moth-type');
-        mothTypeElement.style.color = "black !important";
 
         shieldsInput.oninput = function () {
             selectedMoth.shields = parseInt(shieldsInput.value, 10);
@@ -620,8 +627,7 @@ function updateMothInfo(mothName) {
 
         if (isRecognizedPilot) {
             pilotElement.classList.remove('unrecognized-location');
-            pilotElement.style.cursor = 'pointer';
-            pilotElement.style.color = '#007bff';
+            pilotElement.classList.add('recognized-location');
 
             pilotElement.replaceWith(pilotElement.cloneNode(true));
             const newPilotElement = document.getElementById('mothPilot');
@@ -629,9 +635,8 @@ function updateMothInfo(mothName) {
                 handlePilotClick(pilotName);
             });
         } else {
+            pilotElement.classList.remove('recognized-location');
             pilotElement.classList.add('unrecognized-location');
-            pilotElement.style.cursor = 'default';
-            pilotElement.style.color = 'black';
 
             const newPilotElement = pilotElement.cloneNode(true);
             pilotElement.replaceWith(newPilotElement);
@@ -660,16 +665,14 @@ function updateMothInfo(mothName) {
 
             if (isRecognizedPassenger) {
                 passengerElement.classList.remove('unrecognized-location');
-                passengerElement.style.cursor = 'pointer';
-                passengerElement.style.color = '#007bff';
+                passengerElement.classList.add('recognized-location');
 
                 passengerElement.onclick = function () {
                     handlePilotClick(passengerName);
                 };
             } else {
+                passengerElement.classList.remove('recognized-location');
                 passengerElement.classList.add('unrecognized-location');
-                passengerElement.style.cursor = 'default';
-                passengerElement.style.color = 'black';
 
                 // Remove click event if unrecognized
                 passengerElement.onclick = null;
@@ -700,8 +703,7 @@ function updateMothInfo(mothName) {
 
         if (isRecognizedHangar) {
             hangarElement.classList.remove('unrecognized-location');
-            hangarElement.style.cursor = 'pointer';
-            hangarElement.style.color = '#007bff';
+            hangarElement.classList.add('recognized-location');
 
             hangarElement.replaceWith(hangarElement.cloneNode(true));
             const newHangarElement = document.getElementById('mothHangar');
@@ -710,9 +712,8 @@ function updateMothInfo(mothName) {
                 handleLocationClick(hangarName);
             });
         } else {
+            hangarElement.classList.remove('recognized-location');
             hangarElement.classList.add('unrecognized-location');
-            hangarElement.style.cursor = 'default';
-            hangarElement.style.color = 'black';
 
             hangarElement.replaceWith(hangarElement.cloneNode(true));
             const newHangarElement = document.getElementById('mothHangar');
@@ -730,6 +731,7 @@ function handlePilotClick(pilotName) {
         showTab('pilots');
         const pilotDropdown = document.getElementById('pilotSelect');
         pilotDropdown.value = cleanedPilotName;
+        pilotDropdown.customSelectSync?.();
         updatePilotInfo(cleanedPilotName);
     }
 }
@@ -982,5 +984,229 @@ function showTab(tabId) {
     }
 }
 
-window.onload = resetFormData;
+function initializeCustomSelect(select) {
+    // Don't initialize the same select twice
+    if (select.dataset.customized === 'true') {
+        return;
+    }
+
+    select.dataset.customized = 'true';
+
+    // Wrapper
+    const wrapper = document.createElement('div');
+    wrapper.className = 'hw-select';
+
+    // Visible selected value
+    const display = document.createElement('button');
+    display.type = 'button';
+    display.className = 'hw-select-display';
+
+    // Dropdown list
+    const dropdown = document.createElement('div');
+    dropdown.className = 'hw-select-dropdown';
+
+    // Insert wrapper immediately before native select
+    select.parentNode.insertBefore(wrapper, select);
+
+    wrapper.appendChild(select);
+    wrapper.appendChild(display);
+    wrapper.appendChild(dropdown);
+
+    // Hide native select visually
+    select.classList.add('hw-native-select');
+
+    function rebuild() {
+        dropdown.innerHTML = '';
+
+        Array.from(select.options).forEach(option => {
+            const item = document.createElement('div');
+
+            item.className = 'hw-select-option';
+            item.textContent = option.textContent;
+            item.dataset.value = option.value;
+
+            if (option.value === select.value) {
+                item.classList.add('selected');
+            }
+
+            item.addEventListener('click', function () {
+                select.value = option.value;
+
+                select.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
+
+                sync();
+
+                wrapper.classList.remove('open');
+            });
+
+            dropdown.appendChild(item);
+        });
+
+        sync();
+    }
+
+    function sync() {
+        const selectedOption = select.options[select.selectedIndex];
+
+        display.textContent = selectedOption ? selectedOption.textContent : '';
+
+        dropdown.querySelectorAll('.hw-select-option').forEach(item => {
+            item.classList.toggle(
+                'selected',
+                item.dataset.value === select.value
+            );
+        });
+    }
+
+    display.addEventListener('click', function (event) {
+        event.stopPropagation();
+
+        // Close any other custom select
+        document.querySelectorAll('.hw-select.open').forEach(other => {
+            if (other !== wrapper) {
+                other.classList.remove('open');
+            }
+        });
+
+        wrapper.classList.toggle('open');
+    });
+
+    let searchBuffer = '';
+    let searchTimeout = null;
+
+    display.addEventListener('keydown', function (event) {
+        const options = Array.from(select.options);
+
+        if (!options.length) {
+            return;
+        }
+
+        let index = select.selectedIndex;
+
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+
+                if (index < options.length - 1) {
+                    index++;
+                }
+
+                select.selectedIndex = index;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sync();
+                break;
+
+            case 'ArrowUp':
+                event.preventDefault();
+
+                if (index > 0) {
+                    index--;
+                }
+
+                select.selectedIndex = index;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sync();
+                break;
+
+            case 'Enter':
+            case ' ':
+                event.preventDefault();
+                wrapper.classList.toggle('open');
+                break;
+
+            case 'Escape':
+                event.preventDefault();
+                wrapper.classList.remove('open');
+                break;
+
+            case 'Home':
+                event.preventDefault();
+
+                select.selectedIndex = 0;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sync();
+                break;
+
+            case 'End':
+                event.preventDefault();
+
+                select.selectedIndex = options.length - 1;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                sync();
+                break;
+
+            default:
+                // Type-ahead search
+                if (event.key.length === 1 && /^[a-z0-9 ]$/i.test(event.key)) {
+                    event.preventDefault();
+
+                    clearTimeout(searchTimeout);
+
+                    const key = event.key.toLowerCase();
+
+                    // Pressing the same letter repeatedly cycles through matches
+                    if (searchBuffer === key) {
+                        const startIndex = (select.selectedIndex + 1) % options.length;
+
+                        for (let i = 0; i < options.length; i++) {
+                            const index = (startIndex + i) % options.length;
+
+                            if (options[index].textContent.toLowerCase().startsWith(key)) {
+                                select.selectedIndex = index;
+                                select.dispatchEvent(new Event('change', { bubbles: true }));
+                                sync();
+                                break;
+                            }
+                        }
+                    } else {
+                        searchBuffer += key;
+
+                        const matchIndex = options.findIndex(option => option.textContent.toLowerCase().startsWith(searchBuffer));
+
+                        if (matchIndex !== -1) {
+                            select.selectedIndex = matchIndex;
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                            sync();
+                        }
+                    }
+
+                    searchTimeout = setTimeout(() => {
+                        searchBuffer = '';
+                    }, 700);
+                }
+
+                break;
+        }
+    });
+
+    // Existing change events still work normally
+    select.addEventListener('change', sync);
+
+    // Expose helpers so dynamically populated selects can be rebuilt
+    select.customSelectRebuild = rebuild;
+    select.customSelectSync = sync;
+
+    rebuild();
+}
+
+function initializeCustomSelects() {
+    document.querySelectorAll(
+        '#pilotSelect, #mothSelect, #hangarSelect'
+    ).forEach(initializeCustomSelect);
+}
+
+// Close dropdown when clicking elsewhere
+document.addEventListener('click', function () {
+    document.querySelectorAll('.hw-select.open').forEach(select => {
+        select.classList.remove('open');
+    });
+});
+
+window.onload = function () {
+    resetFormData();
+    initializeCustomSelects();
+};
+
 showTab('pilots');
