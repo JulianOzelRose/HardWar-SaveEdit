@@ -61,6 +61,7 @@ const MOTH_TYPE = {
 const HANGAR_ITERATOR = 0x964;
 const HANGAR_NAME_OFFSET = 0x10;
 const HANGAR_ENEMIES_LIST_OFFSET = 0x3C;
+const HANGAR_DISPLAY_TYPE_OFFSET = 0x44;
 const HANGAR_OWNER_OFFSET = 0x48;
 const HANGAR_POINTER_OFFSET = 0x2C;
 const HANGAR_CASH_HELD_OFFSET = 0x8BC;
@@ -192,9 +193,7 @@ function parsePilots() {
                 values_changed: values_changed
             };
 
-            // Append "(You)" to main player display string
             if (type == 1) {
-                pilots[name].name += " (You)";
                 pilots[name].is_main_player = true;
             }
 
@@ -259,6 +258,7 @@ function parseHangars() {
     for (let index = 0; index < NUM_HANGARS; index++) {
         const hangarOffset = HANGAR_LIST_START + (HANGAR_ITERATOR * index);
         const name = readString(hangarOffset + HANGAR_NAME_OFFSET, true);
+        const display_type = dataView.getUint32(hangarOffset + HANGAR_DISPLAY_TYPE_OFFSET, true);
         const owner = dataView.getUint32(hangarOffset + HANGAR_OWNER_OFFSET, true);
         const cash_held = dataView.getInt32(hangarOffset + HANGAR_CASH_HELD_OFFSET, true);
         const address = dataView.getUint32(hangarPointersStart + (4 * index), true);
@@ -266,28 +266,53 @@ function parseHangars() {
 
         const bays = HANGAR_BAY_OFFSETS.map(offset => {
             const bayAddress = dataView.getUint32(hangarOffset + offset, true);
+
             if (bayAddress === 0) {
                 return "Empty";
-            } else if (moths[bayAddress]) {
-                return moths[bayAddress].name;
-            } else {
-                return `0x${bayAddress.toString(16).toUpperCase()}`; // Fallback to the dynamic address if no moth is found
             }
+
+            return `0x${bayAddress.toString(16).toUpperCase()}`;
         });
 
         hangars[name] = {
-            name: name,
+            name,
+            display_name: name,
+            display_type,
             offset: hangarOffset,
-            address: address,
+            address,
             owner: `0x${owner.toString(16).toUpperCase()}`,
-            cash_held: cash_held,
-            bays: bays,
-            values_changed: values_changed
+            cash_held,
+            bays,
+            values_changed
         };
 
     }
 
     console.log(`Hangars (${Object.keys(hangars).length}): `, hangars);
+}
+
+function resolveHangarDisplayNames() {
+    Object.values(hangars).forEach(hangar => {
+        if (hangar.display_type !== 1) {
+            return;
+        }
+
+        const ownerAddress = parseInt(hangar.owner, 16);
+
+        if (!ownerAddress) {
+            return;
+        }
+
+        const ownerPilot = Object.values(pilots).find(pilot => pilot.address === ownerAddress);
+
+        if (ownerPilot) {
+            hangar.display_name = `${ownerPilot.name}'s Hangar`;
+        }
+    });
+}
+
+function getPilotDisplayName(pilot) {
+    return pilot.is_main_player ? `${pilot.name} (You)` : pilot.name;
 }
 
 function getHangarEntryCount() {
@@ -311,12 +336,11 @@ function populatePilotDropdown() {
         const option = document.createElement('option');
         option.value = pilotName;
 
-        // Append "(You)" to the main player's name
-        if (pilots[pilotName].is_main_player) {
-            option.textContent = `${pilotName} (You)`;
+        const pilot = pilots[pilotName];
+        option.textContent = getPilotDisplayName(pilot);
+
+        if (pilot.is_main_player) {
             mainPilotIndex = index;
-        } else {
-            option.textContent = pilotName;
         }
 
         dropdown.appendChild(option);
@@ -365,7 +389,7 @@ function populateHangarDropdown() {
     Object.keys(hangars).forEach(hangarName => {
         const option = document.createElement('option');
         option.value = hangarName;
-        option.textContent = hangarName;
+        option.textContent = hangars[hangarName].display_name;
         dropdown.appendChild(option);
     });
 
@@ -410,7 +434,7 @@ function updateHangarOwner(elementId, ownerAddress) {
         const ownerPilot = Object.values(pilots).find(pilot => pilot.address === parseInt(ownerAddress, 16));
 
         if (ownerPilot) {
-            element.textContent = ownerPilot.name;
+            element.textContent = getPilotDisplayName(ownerPilot);
             element.classList.remove('unrecognized-location');
             element.classList.add('recognized-location');
 
@@ -424,7 +448,7 @@ function updateHangarOwner(elementId, ownerAddress) {
             const ownerHangar = Object.values(hangars).find(hangar => hangar.address === parseInt(ownerAddress, 16));
 
             if (ownerHangar) {
-                element.textContent = ownerHangar.name;
+                element.textContent = ownerHangar.display_name;
                 element.classList.remove('unrecognized-location');
                 element.classList.add('recognized-location');
 
@@ -433,7 +457,6 @@ function updateHangarOwner(elementId, ownerAddress) {
                 newElement.addEventListener('click', function () {
                     handleLocationClick(ownerHangar.name);
                 });
-
             } else {
                 element.textContent = `0x${parseInt(ownerAddress, 16).toString(16).toUpperCase()}`;
                 element.classList.remove('recognized-location');
@@ -491,7 +514,8 @@ function updatePilotInfo(pilotName) {
         const locationElement = document.getElementById('pilotLocation');
         const locationName = selectedPilot.location_name;
         const locationMoth = moths[locationName];
-        const locationDisplayName = locationMoth ? (locationMoth.type || "Unknown") : locationName;
+        const locationHangar = hangars[locationName];
+        const locationDisplayName = locationMoth ? (locationMoth.type || "Unknown") : locationHangar ? locationHangar.display_name : locationName;
         const isRecognizedLocation = !locationName.startsWith("0x");
 
         locationElement.textContent = locationDisplayName;
@@ -607,23 +631,23 @@ function updateMothInfo(mothName) {
 
         const pilotElement = document.getElementById('mothPilot');
         const pilotPointer = selectedMoth.pilot;
-        let pilotName = `0x${pilotPointer.toString(16).toUpperCase()}`;
+        let pilotName = pilotPointer === 0 ? "None" : `0x${pilotPointer.toString(16).toUpperCase()}`;
 
         let isRecognizedPilot = false;
+        let matchedPilot = null;
 
-        if (pilotPointer === 0) {
-            pilotName = "None";
-        } else {
+        if (pilotPointer !== 0) {
             for (const pilotKey in pilots) {
                 if (pilots[pilotKey].address === pilotPointer) {
-                    pilotName = pilots[pilotKey].name;
+                    matchedPilot = pilots[pilotKey];
+                    pilotName = matchedPilot.name;
                     isRecognizedPilot = true;
                     break;
                 }
             }
         }
 
-        pilotElement.textContent = pilotName;
+        pilotElement.textContent = matchedPilot ? getPilotDisplayName(matchedPilot) : pilotName;
 
         if (isRecognizedPilot) {
             pilotElement.classList.remove('unrecognized-location');
@@ -652,16 +676,18 @@ function updateMothInfo(mothName) {
             let passengerName = passengerPointer === 0 ? "None" : `0x${passengerPointer.toString(16).toUpperCase()}`;
 
             let isRecognizedPassenger = false;
+            let matchedPassenger = null;
 
             if (passengerPointer !== 0) {
-                const matchedPilot = Object.values(pilots).find(pilot => pilot.address === passengerPointer);
-                if (matchedPilot) {
-                    passengerName = matchedPilot.name;
+                matchedPassenger = Object.values(pilots).find(pilot => pilot.address === passengerPointer);
+
+                if (matchedPassenger) {
+                    passengerName = matchedPassenger.name;
                     isRecognizedPassenger = true;
                 }
             }
 
-            passengerElement.textContent = passengerName;
+            passengerElement.textContent = matchedPassenger ? getPilotDisplayName(matchedPassenger) : passengerName;
 
             if (isRecognizedPassenger) {
                 passengerElement.classList.remove('unrecognized-location');
@@ -685,21 +711,21 @@ function updateMothInfo(mothName) {
 
         const hangarPointer = selectedMoth.hangar;
         let hangarName = "";
+        let hangarDisplayName = hangarPointer === 0 ? "None" : `0x${hangarPointer.toString(16).toUpperCase()}`;
         let isRecognizedHangar = false;
 
-        if (hangarPointer === 0) {
-            hangarName = "None";
-        } else {
+        if (hangarPointer !== 0) {
             for (const hangar in hangars) {
-                if (parseInt(hangars[hangar].address) === hangarPointer) {
+                if (hangars[hangar].address === hangarPointer) {
                     hangarName = hangars[hangar].name;
+                    hangarDisplayName = hangars[hangar].display_name;
                     isRecognizedHangar = true;
                     break;
                 }
             }
         }
 
-        hangarElement.textContent = hangarName;
+        hangarElement.textContent = hangarDisplayName;
 
         if (isRecognizedHangar) {
             hangarElement.classList.remove('unrecognized-location');
@@ -718,21 +744,18 @@ function updateMothInfo(mothName) {
             hangarElement.replaceWith(hangarElement.cloneNode(true));
             const newHangarElement = document.getElementById('mothHangar');
 
-            newHangarElement.textContent = "None";
+            newHangarElement.textContent = hangarDisplayName;
         }
     }
 }
 
 function handlePilotClick(pilotName) {
-    // Remove the "(You)" suffix if it exists
-    const cleanedPilotName = pilotName.replace(' (You)', '');
-
-    if (cleanedPilotName !== "None" && !cleanedPilotName.startsWith("0x")) {
+    if (pilotName !== "None" && !pilotName.startsWith("0x")) {
         showTab('pilots');
         const pilotDropdown = document.getElementById('pilotSelect');
-        pilotDropdown.value = cleanedPilotName;
+        pilotDropdown.value = pilotName;
         pilotDropdown.customSelectSync?.();
-        updatePilotInfo(cleanedPilotName);
+        updatePilotInfo(pilotName);
     }
 }
 
@@ -828,6 +851,7 @@ function browseFile() {
             parseHangars();
             parseMoths();
             parsePilots();
+            resolveHangarDisplayNames();
 
             populatePilotDropdown();
             populateMothDropdown();
