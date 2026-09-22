@@ -175,6 +175,28 @@
                             <input type="text" id="hangarCashHeld" class="form-control"
                                 onkeypress="preventNonNumericalInput(event)" onpaste="preventNonNumericalPaste(event)">
                         </div>
+
+                        <hr style="margin-top: 25px; margin-bottom: 20px;">
+
+                        <div class="hangar-action-buttons">
+                            <button
+                                id="browseStockButton"
+                                type="button"
+                                class="btn hangar-action-btn"
+                                onclick="openStockModal()"
+                                disabled>
+                                Browse Stock
+                            </button>
+
+                            <button
+                                id="enemiesListButton"
+                                type="button"
+                                class="btn hangar-action-btn"
+                                onclick="openEnemiesListModal()"
+                                disabled>
+                                Enemies List
+                            </button>
+                        </div>
                     </fieldset>
                 </div>
             </div>
@@ -209,6 +231,88 @@
         </div>
     </div>
 
+    <!-- Stock Modal -->
+    <div class="modal fade" id="stockModal" tabindex="-1" role="dialog"
+        aria-labelledby="stockModalLabel" aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered stock-modal-dialog" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header custom-header">
+                    <h5 class="modal-title" id="stockModalLabel">Browse Stock</h5>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body stock-modal-body">
+
+                    <div class="stock-table-header">
+                        <span>Item</span>
+                        <span>Stock</span>
+                        <span>Buy</span>
+                        <span>Fit</span>
+                    </div>
+
+                    <div id="stockList" class="stock-list"></div>
+
+                    <div id="stockInfoPanel" class="stock-info-panel">
+                        <div id="stockInfoName" class="stock-info-name"></div>
+                        <div id="stockInfoText" class="stock-info-text">
+                            Select an item to view information.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn navbar-btn ok-btn" data-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Enemies List Modal -->
+    <div class="modal fade" id="enemiesModal" tabindex="-1" role="dialog"
+        aria-labelledby="enemiesModalLabel" aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered enemies-modal-dialog" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header custom-header">
+                    <h5 class="modal-title" id="enemiesModalLabel">Enemies List</h5>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="enemies-table-header">
+                        <span>Pilot</span>
+                        <span>Rating</span>
+                        <span>Reward</span>
+                    </div>
+
+                    <div id="enemiesList" class="enemies-list"></div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn navbar-btn ok-btn" data-dismiss="modal">
+                        Close
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Snackbar Container -->
     <div id="snackbar"></div>
 
@@ -216,6 +320,7 @@
     <script src="assets/jquery-3.6.0.min.js"></script>
     <script src="assets/popper.min.js"></script>
     <script src="assets/bootstrap.min.js"></script>
+    <script src="items.js"></script>
     <script src="script.js"></script>
 </body>
 

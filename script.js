@@ -1,3 +1,4 @@
+// Misc
 let EOF_OFFSET = 0;
 let PILOT_LIST_START = 0;
 let HANGAR_LIST_START = 0;
@@ -5,7 +6,9 @@ let NUM_MOTHS = 0;
 let NUM_HANGARS = 0;
 let dataView = null;
 let originalFilename = '';
+let VERSION_UIM6 = "UIM.06";
 
+// Pointer offsets
 const LOCATION_OF_MOTH_ENTRY_COUNT = 0xDD0;
 const LOCATION_OF_OFFSET_TO_MOTH_ENTRIES = 0xDD4;
 const LOCATION_OF_OFFSET_TO_MOTH_POINTERS = 0xDD8;
@@ -60,10 +63,13 @@ const MOTH_TYPE = {
 // Hangar constants and offsets
 const HANGAR_ITERATOR = 0x964;
 const HANGAR_NAME_OFFSET = 0x10;
-const HANGAR_ENEMIES_LIST_OFFSET = 0x3C;
+const HANGAR_POINTER_OFFSET = 0x2C;
+const HANGAR_FACTION_STATE_OFFSET = 0x3C;
 const HANGAR_DISPLAY_TYPE_OFFSET = 0x44;
 const HANGAR_OWNER_OFFSET = 0x48;
-const HANGAR_POINTER_OFFSET = 0x2C;
+const HANGAR_STOCK_LIST_OFFSET = 0x58;
+const HANGAR_STOCK_ENTRY_SIZE = 0x18;
+const HANGAR_STOCK_ITEM_COUNT = 89;
 const HANGAR_CASH_HELD_OFFSET = 0x8BC;
 const HANGAR_BAY_OFFSETS = [0x8D8, 0x8DC, 0x8E0, 0x8E4, 0x8E8, 0x8EC];
 
@@ -75,6 +81,13 @@ const MOTH_MAX_CPU_DMG = 0x4000;
 const MOTH_MAX_POWER_DMG = 0x4000;
 const MOTH_MAX_WEAPONS_DMG = 0x4000;
 
+// Faction constants and offsets
+const FACTION_STATE_SIZE = 0x1D34;
+const FACTION_ENEMIES_LIST_OFFSET = 0x0;
+const FACTION_ENEMIES_RATINGS_OFFSET = 0x78;
+const FACTION_ENEMIES_MAX_ENTRIES = 30;
+const POLICE_HQ_NAME = "Police HQ";
+
 // Objects
 let pilots = {};
 let moths = {};
@@ -84,6 +97,8 @@ function resetFormData() {
     document.querySelectorAll('.form-control').forEach(el => el.value = '');
     document.querySelectorAll('.text-primary').forEach(el => el.textContent = '');
     document.querySelectorAll('.form-select').forEach(el => el.innerHTML = '<option value="">Select</option>');
+    document.getElementById('browseStockButton').disabled = true;
+    document.getElementById('enemiesListButton').disabled = true;
     document.getElementById('savegame').textContent = "No file loaded";
 }
 
@@ -92,7 +107,7 @@ function verifyVersion() {
     for (let i = 0; i < 6; i++) {
         versionString += String.fromCharCode(dataView.getUint8(i));
     }
-    return versionString === "UIM.06";
+    return versionString === VERSION_UIM6;
 }
 
 function getPilotEntryCount() {
@@ -274,6 +289,27 @@ function parseHangars() {
             return `0x${bayAddress.toString(16).toUpperCase()}`;
         });
 
+        const stock = [];
+
+        const stockListOffset = hangarOffset + HANGAR_STOCK_LIST_OFFSET;
+
+        for (let itemIndex = 0; itemIndex < HANGAR_STOCK_ITEM_COUNT; itemIndex++) {
+            const stockEntryOffset = stockListOffset + (itemIndex * HANGAR_STOCK_ENTRY_SIZE);
+            const quantity = dataView.getInt32(stockEntryOffset, true);
+            const storedPrice = dataView.getInt32(stockEntryOffset + 0x04, true);
+            const item = ITEM_DEFINITIONS[itemIndex];
+
+            if (quantity > 0) {
+                stock.push({
+                    itemIndex,
+                    name: item.name,
+                    info: item.info,
+                    stock: quantity,
+                    storedPrice
+                });
+            }
+        }
+
         hangars[name] = {
             name,
             display_name: name,
@@ -283,9 +319,9 @@ function parseHangars() {
             owner: `0x${owner.toString(16).toUpperCase()}`,
             cash_held,
             bays,
+            stock,
             values_changed
         };
-
     }
 
     console.log(`Hangars (${Object.keys(hangars).length}): `, hangars);
@@ -308,6 +344,35 @@ function resolveHangarDisplayNames() {
         if (ownerPilot) {
             hangar.display_name = `${ownerPilot.name}'s Hangar`;
         }
+    });
+}
+
+function resolveHangarWantedLists() {
+    Object.values(hangars).forEach(hangar => {
+        hangar.hasWantedList = false;
+
+        const ownerAddress = dataView.getUint32(hangar.offset + HANGAR_OWNER_OFFSET, true);
+
+        if (!ownerAddress) {
+            return;
+        }
+
+        const ownerHangar = Object.values(hangars).find(candidate => candidate.address === ownerAddress);
+
+        if (!ownerHangar) {
+            return;
+        }
+
+        const reference = dataView.getUint32(ownerHangar.offset + HANGAR_FACTION_STATE_OFFSET, true);
+        const index = reference - 0x1000;
+
+        if (index < 0 || index >= 400) {
+            return;
+        }
+
+        const size = dataView.getUint32(0x790 + (index * 4), true);
+
+        hangar.hasWantedList = size === FACTION_STATE_SIZE;
     });
 }
 
@@ -409,7 +474,12 @@ function populateHangarDropdown() {
             for (let i = 0; i < 6; i++) {
                 updateHangarBay(`hangarBay${i + 1}`, selectedHangar.bays[i]);
             }
+
+            const enemiesListButton = document.getElementById('enemiesListButton');
+            enemiesListButton.textContent = isPoliceFaction(selectedHangar) ? 'Wanted List' : 'Enemies List';
         }
+
+        updateHangarActionButtons();
     });
 
     if (dropdown.customSelectRebuild) {
@@ -497,6 +567,17 @@ function updateHangarBay(elementId, bayAddress) {
             newElement.classList.add('unrecognized-location');
         }
     }
+}
+
+function updateHangarActionButtons() {
+    const selectedHangarName = document.getElementById('hangarSelect').value;
+    const hangar = hangars[selectedHangarName];
+
+    const stockButton = document.getElementById('browseStockButton');
+    const wantedButton = document.getElementById('enemiesListButton');
+
+    stockButton.disabled = !hangar;
+    wantedButton.disabled = !hangar || !hangar.hasWantedList;
 }
 
 function updatePilotInfo(pilotName) {
@@ -852,6 +933,7 @@ function browseFile() {
             parseMoths();
             parsePilots();
             resolveHangarDisplayNames();
+            resolveHangarWantedLists();
 
             populatePilotDropdown();
             populateMothDropdown();
@@ -943,8 +1025,239 @@ function preventNonNumericalPaste(e) {
     }
 }
 
+function calculateItemPrice(basePrice, modifier) {
+    return Math.floor((basePrice * modifier) / 0x4000);
+}
+
+function getBuyPrice(hangar, item) {
+    const flags = dataView.getUint8(hangar.offset + 0x40);
+
+    // Special pricing mode
+    if ((flags & 0x02) !== 0) {
+        return item.price; // stock record +0x04
+    }
+
+    const modifier = dataView.getInt32(hangar.offset + 0x8B4, true);
+    return calculateItemPrice(item.price, modifier);
+}
+
+function getFitPrice(hangar, item) {
+    const flags = dataView.getUint8(hangar.offset + 0x40);
+
+    // Special pricing mode
+    if ((flags & 0x02) !== 0) {
+        return item.price + 100;
+    }
+
+    const modifier = dataView.getInt32(hangar.offset + 0x8B8, true);
+    return calculateItemPrice(item.price, modifier);
+}
+
+function getItemInfo(item) {
+    const definition = ITEM_DEFINITIONS[item.itemIndex];
+
+    if (definition.cargoCount !== undefined &&
+        definition.maxUnitsEach !== undefined) {
+        return definition.info.replace('%d', definition.cargoCount).replace('%d', definition.maxUnitsEach);
+    }
+
+    return definition.info;
+}
+
+function isPoliceFaction(hangar) {
+    if (!hangar) {
+        return false;
+    }
+
+    const ownerAddress = dataView.getUint32(hangar.offset + HANGAR_OWNER_OFFSET, true);
+
+    if (!ownerAddress) {
+        return false;
+    }
+
+    const ownerHangar = Object.values(hangars).find(candidate => candidate.address === ownerAddress);
+
+    return ownerHangar?.name === POLICE_HQ_NAME;
+}
+
 function openAboutModal() {
     $('#aboutModal').modal('show');
+}
+
+function openStockModal() {
+    const selectedHangarName = document.getElementById('hangarSelect').value;
+    const hangar = hangars[selectedHangarName];
+    const stock = hangar.stock;
+
+    const stockList = document.getElementById('stockList');
+    const infoName = document.getElementById('stockInfoName');
+    const infoText = document.getElementById('stockInfoText');
+
+    stockList.innerHTML = '';
+    infoName.textContent = '';
+    infoText.textContent = 'Select an item to view information.';
+
+    const hangarFlags = dataView.getUint8(hangar.offset + 0x40);
+    const buyModifier = dataView.getInt32(hangar.offset + 0x8B4, true);
+    const fitModifier = dataView.getInt32(hangar.offset + 0x8B8, true);
+
+    stock.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'stock-row';
+
+        const itemDefinition = ITEM_DEFINITIONS[item.itemIndex];
+
+        let buyPrice;
+        let fitPrice;
+
+        if ((hangarFlags & 0x02) !== 0) {
+            buyPrice = item.storedPrice;
+            fitPrice = item.storedPrice + 100;
+        } else {
+            buyPrice = calculateItemPrice(itemDefinition.baseValue, buyModifier);
+            fitPrice = calculateItemPrice(itemDefinition.baseValue, fitModifier);
+        }
+
+        const canFit = (itemDefinition.flags & 0x06) !== 0;
+
+        row.innerHTML = `
+            <span>${item.name}</span>
+            <span class="stock-row-stock">${item.stock}</span>
+            <span class="stock-row-price">$${buyPrice.toLocaleString()}</span>
+            <span class="stock-row-price">${canFit ? `$${fitPrice.toLocaleString()}` : '-'}</span>
+        `;
+
+        row.addEventListener('click', () => {
+            document.querySelectorAll('.stock-row.selected').forEach(selected => selected.classList.remove('selected'));
+
+            row.classList.add('selected');
+
+            infoName.textContent = item.name;
+            infoText.textContent = getItemInfo(item);
+        });
+
+        stockList.appendChild(row);
+    });
+
+    if (stock.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'stock-row';
+        empty.style.cursor = 'default';
+        empty.textContent = 'No items in stock.';
+        stockList.appendChild(empty);
+    }
+
+    $('#stockModal').modal('show');
+}
+
+function openEnemiesListModal() {
+    const selectedHangarName = document.getElementById('hangarSelect').value;
+    const hangar = hangars[selectedHangarName];
+
+    if (!hangar) {
+        showSnackbar('No hangar selected.');
+        return;
+    }
+
+    document.getElementById('enemiesModalLabel').textContent = isPoliceFaction(hangar) ? 'Wanted List' : 'Enemies List';
+
+    const ownerAddress = dataView.getUint32(hangar.offset + HANGAR_OWNER_OFFSET, true);
+
+    if (!ownerAddress) {
+        showSnackbar('This hangar has no owner.');
+        return;
+    }
+
+    const ownerHangar = Object.values(hangars).find(candidate => candidate.address === ownerAddress);
+
+    if (!ownerHangar) {
+        showSnackbar('Could not resolve the hangar owner.');
+        return;
+    }
+
+    const factionStateReference = dataView.getUint32(ownerHangar.offset + HANGAR_FACTION_STATE_OFFSET, true);
+    const factionStateIndex = factionStateReference - 0x1000;
+
+    if (factionStateIndex < 0 || factionStateIndex >= 400) {
+        showSnackbar('Could not resolve the faction state.');
+        return;
+    }
+
+    const factionStateOffset = dataView.getUint32(0x150 + (factionStateIndex * 4), true);
+    const factionStateSize = dataView.getUint32(0x790 + (factionStateIndex * 4), true);
+
+    if (!factionStateOffset || factionStateSize !== FACTION_STATE_SIZE || factionStateOffset + FACTION_STATE_SIZE > dataView.byteLength) {
+        showSnackbar('Could not resolve the faction state.');
+        return;
+    }
+
+    const pilotByAddress = new Map();
+
+    Object.values(pilots).forEach(pilot => {
+        pilotByAddress.set(pilot.address, pilot);
+    });
+
+    const enemyPilots = [];
+
+    for (let index = 0; index < FACTION_ENEMIES_MAX_ENTRIES; index++) {
+        const pilotAddress = dataView.getUint32(factionStateOffset + (index * 4), true);
+
+        if (!pilotAddress) {
+            continue;
+        }
+
+        const pilot = pilotByAddress.get(pilotAddress);
+
+        // Some Enemies entries reference non-pilot game objects
+        if (!pilot) {
+            continue;
+        }
+
+        const ratingRaw = dataView.getInt32(
+            factionStateOffset +
+            FACTION_ENEMIES_RATINGS_OFFSET +
+            (index * 4),
+            true
+        );
+
+        const rating = Math.floor((ratingRaw * 100) / 0x4000);
+        const reward = Math.floor((ratingRaw * 2000) / 0x4000);
+
+        enemyPilots.push({
+            name: pilot.name,
+            rating,
+            reward
+        });
+    }
+
+    /*
+        Render Enemies List.
+    */
+    const enemiesListBody = document.getElementById('enemiesList');
+    enemiesListBody.innerHTML = '';
+
+    if (enemyPilots.length === 0) {
+        enemiesListBody.innerHTML = `
+            <div class="enemies-empty">
+                NO ENEMIES
+            </div>
+        `;
+    } else {
+        enemyPilots.forEach(pilot => {
+            const row = document.createElement('div');
+            row.className = 'enemies-row';
+
+            row.innerHTML = `
+                <div>${pilot.name}</div>
+                <div>${pilot.rating}%</div>
+                <div>$${pilot.reward.toLocaleString()}</div>
+            `;
+
+            enemiesListBody.appendChild(row);
+        });
+    }
+
+    $('#enemiesModal').modal('show');
 }
 
 document.getElementById('pilotCash').addEventListener('input', function (e) {

@@ -628,6 +628,305 @@ hr {
     cursor: default;
 }
 
+/* ============================================================
+   HANGAR ACTIONS
+   ============================================================ */
+
+.hangar-action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.hangar-action-btn {
+    width: 180px;
+    height: 36px;
+
+    color: var(--hw-text);
+
+    background:
+        linear-gradient(
+            180deg,
+            #292c27 0%,
+            #171a17 100%
+        );
+
+    border: 1px solid var(--hw-line);
+    border-radius: 2px;
+
+    box-shadow:
+        inset 0 0 0 1px #11130f,
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        1px 1px 0 #080908;
+
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+
+    cursor: pointer;
+}
+
+.hangar-action-btn:hover,
+.hangar-action-btn:focus {
+    color: #f2c080;
+
+    background:
+        linear-gradient(
+            180deg,
+            #382b1d 0%,
+            #1e1913 100%
+        );
+
+    border-color: var(--hw-orange);
+
+    outline: none;
+
+    box-shadow:
+        inset 0 0 0 1px var(--hw-orange-dark),
+        0 0 6px rgba(228, 120, 24, 0.25);
+}
+
+.hangar-action-btn:disabled,
+.hangar-action-btn:disabled:hover,
+.hangar-action-btn:disabled:focus {
+    color: #68695d;
+
+    background:
+        linear-gradient(
+            180deg,
+            #20221f 0%,
+            #151715 100%
+        );
+
+    border-color: #383b33;
+
+    box-shadow:
+        inset 0 0 0 1px #11130f,
+        1px 1px 0 #080908;
+
+    cursor: default;
+    opacity: 0.6;
+}
+
+
+/* ============================================================
+   STOCK LIST MODAL
+   ============================================================ */
+
+.stock-modal-dialog {
+    max-width: 700px;
+}
+
+.stock-modal-body {
+    padding: 20px;
+}
+
+
+/* Column headings */
+
+.stock-table-header {
+    display: grid;
+    grid-template-columns: 1fr 70px 100px 100px;
+
+    padding: 0 12px 8px 12px;
+
+    color: var(--hw-text-dim);
+
+    border-bottom: 1px solid var(--hw-line);
+
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.stock-table-header span:nth-child(2),
+.stock-table-header span:nth-child(3),
+.stock-table-header span:nth-child(4) {
+    text-align: right;
+}
+
+
+/* Stock list */
+
+.stock-list {
+    height: 280px;
+
+    overflow-y: auto;
+
+    margin-bottom: 18px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #11140f,
+            #0b0d0a
+        );
+
+    border: 1px solid var(--hw-line-dim);
+
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.55);
+}
+
+
+/* Individual item */
+
+.stock-row {
+    display: grid;
+    grid-template-columns: 1fr 70px 100px 100px;
+
+    padding: 8px 12px;
+
+    color: var(--hw-text);
+
+    border-bottom: 1px solid #292c22;
+
+    cursor: pointer;
+
+    transition:
+        color 0.08s,
+        background-color 0.08s;
+}
+
+.stock-row:hover {
+    color: #f1b46c;
+
+    background: rgba(228, 120, 24, 0.07);
+}
+
+.stock-row.selected {
+    color: var(--hw-orange);
+
+    background: rgba(228, 120, 24, 0.10);
+}
+
+.stock-row-stock,
+.stock-row-price {
+    text-align: right;
+}
+
+
+/* Information panel */
+
+.stock-info-panel {
+    min-height: 125px;
+    margin-top: 20px;
+
+    padding: 14px;
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(39, 43, 33, 0.92),
+            rgba(22, 25, 19, 0.96)
+        );
+
+    border: 1px solid var(--hw-line);
+
+    box-shadow:
+        inset 0 0 0 1px #10120e,
+        inset 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+.stock-info-name {
+    margin-bottom: 10px;
+
+    color: var(--hw-orange);
+
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.stock-info-text {
+    color: var(--hw-text);
+    line-height: 1.5;
+}
+
+
+/* Scrollbar */
+
+.stock-list {
+    scrollbar-width: thin;
+    scrollbar-color: var(--hw-line) #0b0d0a;
+}
+
+.stock-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.stock-list::-webkit-scrollbar-track {
+    background: #0b0d0a;
+}
+
+.stock-list::-webkit-scrollbar-thumb {
+    background: var(--hw-line);
+    border: 2px solid #0b0d0a;
+}
+
+.stock-list::-webkit-scrollbar-thumb:hover {
+    background: var(--hw-orange);
+}
+
+/* ============================================================
+   ENEMIES LIST MODAL
+   ============================================================ */
+
+.enemies-modal-dialog {
+    max-width: 600px;
+}
+
+.enemies-table-header {
+    display: grid;
+    grid-template-columns: 1fr 100px 120px;
+
+    padding: 0 12px 8px 12px;
+
+    color: var(--hw-text-dim);
+
+    border-bottom: 1px solid var(--hw-line);
+
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+}
+
+.enemies-table-header span:nth-child(2),
+.enemies-table-header span:nth-child(3) {
+    text-align: right;
+}
+
+.enemies-list {
+    height: 320px;
+    overflow-y: auto;
+
+    background:
+        linear-gradient(
+            180deg,
+            #11140f,
+            #0b0d0a
+        );
+
+    border: 1px solid var(--hw-line-dim);
+
+    box-shadow:
+        inset 0 0 10px rgba(0, 0, 0, 0.55);
+}
+
+.enemies-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 120px;
+
+    padding: 8px 12px;
+
+    color: var(--hw-text);
+
+    border-bottom: 1px solid #292c22;
+}
+
+.enemies-row > :nth-child(2),
+.enemies-row > :nth-child(3) {
+    text-align: right;
+}
+
 
 /* ============================================================
    MODAL
