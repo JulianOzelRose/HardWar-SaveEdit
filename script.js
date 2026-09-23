@@ -528,7 +528,7 @@ function updateHangarOwner(elementId, ownerAddress) {
                     handleLocationClick(ownerHangar.name);
                 });
             } else {
-                element.textContent = `0x${parseInt(ownerAddress, 16).toString(16).toUpperCase()}`;
+                element.textContent = "None";
                 element.classList.remove('recognized-location');
                 element.classList.add('unrecognized-location');
 
