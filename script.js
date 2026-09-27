@@ -65,7 +65,7 @@ const HANGAR_ITERATOR = 0x964;
 const HANGAR_NAME_OFFSET = 0x10;
 const HANGAR_POINTER_OFFSET = 0x2C;
 const HANGAR_FACTION_STATE_OFFSET = 0x3C;
-const HANGAR_DISPLAY_TYPE_OFFSET = 0x44;
+const HANGAR_OWNER_TYPE_OFFSET = 0x44;
 const HANGAR_OWNER_OFFSET = 0x48;
 const HANGAR_STOCK_LIST_OFFSET = 0x58;
 const HANGAR_STOCK_ENTRY_SIZE = 0x18;
@@ -273,7 +273,7 @@ function parseHangars() {
     for (let index = 0; index < NUM_HANGARS; index++) {
         const hangarOffset = HANGAR_LIST_START + (HANGAR_ITERATOR * index);
         const name = readString(hangarOffset + HANGAR_NAME_OFFSET, true);
-        const display_type = dataView.getUint32(hangarOffset + HANGAR_DISPLAY_TYPE_OFFSET, true);
+        const owner_type = dataView.getUint32(hangarOffset + HANGAR_OWNER_TYPE_OFFSET, true);
         const owner = dataView.getUint32(hangarOffset + HANGAR_OWNER_OFFSET, true);
         const cash_held = dataView.getInt32(hangarOffset + HANGAR_CASH_HELD_OFFSET, true);
         const address = dataView.getUint32(hangarPointersStart + (4 * index), true);
@@ -313,7 +313,7 @@ function parseHangars() {
         hangars[name] = {
             name,
             display_name: name,
-            display_type,
+            owner_type,
             offset: hangarOffset,
             address,
             owner: `0x${owner.toString(16).toUpperCase()}`,
@@ -329,7 +329,7 @@ function parseHangars() {
 
 function resolveHangarDisplayNames() {
     Object.values(hangars).forEach(hangar => {
-        if (hangar.display_type !== 1) {
+        if (hangar.owner_type !== 1) {
             return;
         }
 
@@ -347,9 +347,13 @@ function resolveHangarDisplayNames() {
     });
 }
 
-function resolveHangarWantedLists() {
+function resolveHangarEnemyLists() {
     Object.values(hangars).forEach(hangar => {
-        hangar.hasWantedList = false;
+        hangar.hasEnemyList = false;
+
+        if (hangar.owner_type !== 2) {
+            return;
+        }
 
         const ownerAddress = dataView.getUint32(hangar.offset + HANGAR_OWNER_OFFSET, true);
 
@@ -372,7 +376,7 @@ function resolveHangarWantedLists() {
 
         const size = dataView.getUint32(0x790 + (index * 4), true);
 
-        hangar.hasWantedList = size === FACTION_STATE_SIZE;
+        hangar.hasEnemyList = size === FACTION_STATE_SIZE;
     });
 }
 
@@ -574,10 +578,10 @@ function updateHangarActionButtons() {
     const hangar = hangars[selectedHangarName];
 
     const stockButton = document.getElementById('browseStockButton');
-    const wantedButton = document.getElementById('enemiesListButton');
+    const enemyListButton = document.getElementById('enemiesListButton');
 
     stockButton.disabled = !hangar;
-    wantedButton.disabled = !hangar || !hangar.hasWantedList;
+    enemyListButton.disabled = !hangar || !hangar.hasEnemyList;
 }
 
 function updatePilotInfo(pilotName) {
@@ -933,7 +937,7 @@ function browseFile() {
             parseMoths();
             parsePilots();
             resolveHangarDisplayNames();
-            resolveHangarWantedLists();
+            resolveHangarEnemyLists();
 
             populatePilotDropdown();
             populateMothDropdown();
