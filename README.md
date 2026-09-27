@@ -7,7 +7,7 @@ To use this editor, simply navigate to the deployment page [Here](https://julian
 Note that this editor only supports UIM 6 (Steam release or latest patch) savegames. Use the tab control to navigate between moths, pilots and hangars. Use the dropdown to select the moth, hangar, or pilot you wish to edit. Click 'Save' when you are done,
 and the editor will generate a new savegame file based on the modifications made.
 
-<img width="550" height="708" alt="HardWar-SaveEdit-UI" src="https://github.com/user-attachments/assets/c049c26b-cd82-479a-982b-cf007020a35c" />
+<img width="550" height="791" alt="HardWar-SaveEdit-UI" src="https://github.com/user-attachments/assets/abf6f706-0a5e-4836-ac7e-beffc08c3d02" />
 
 
 
